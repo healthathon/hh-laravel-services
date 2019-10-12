@@ -1,0 +1,30 @@
+[
+  {
+    "labName": "MapMyGenome",
+    "testName": "Genomepatri",
+    "abbr": "GPK",
+    "description": "You need to maintain a 30-minute fast prior to collecting your sample(absolute no water, smoke, food, etc)",
+    "cost": 15000
+  },
+  {
+    "labName": "MapMyGenome",
+    "testName": "Myfitgene",
+    "abbr": "MFG",
+    "description": "You need to maintain a 30-minute fast prior to collecting your sample(absolute no water, smoke, food, etc)",
+    "cost": 15000
+  },
+  {
+    "labName": "MapMyGenome",
+    "testName": "Medicamap",
+    "abbr": "MMP",
+    "description": "You need to maintain a 30-minute fast prior to collecting your sample(absolute no water, smoke, food, etc)",
+    "cost": 15000
+  },
+  {
+    "labName": "MapMyGenome",
+    "testName": "Mynutrigene",
+    "abbr": "MNG",
+    "description": "You need to maintain a 30-minute fast prior to collecting your sample(absolute no water, smoke, food, etc)",
+    "cost": 9999
+  }
+]
