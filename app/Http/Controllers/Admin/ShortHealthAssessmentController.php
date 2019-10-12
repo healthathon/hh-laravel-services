@@ -277,6 +277,7 @@ class ShortHealthAssessmentController extends Controller
                 $responseArr[] = [
                     "id" => $value->id,
                     "answer" => $value->answer,
+                    "question" => $value->belongToQuestion->question,
                     "restriction_level" => $value->restriction !== null ? $value->restriction->restriction_level : -1
                 ];
             }

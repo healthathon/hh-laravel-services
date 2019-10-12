@@ -121,6 +121,18 @@
                         }
                     },
                     {
+                        name: "question",
+                        type: "read-only",
+                        editing: false,
+                        width: 120,
+                        validate: "required",
+                        css: "text-center",
+                        title: "SHA Question",
+                        itemTemplate: function (item) {
+                            return showBlackColorText(item);
+                        }
+                    },
+                    {
                         name: "answer",
                         type: "text",
                         editing: false,
