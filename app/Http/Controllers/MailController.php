@@ -28,7 +28,7 @@ class MailController extends Controller
         Mail::send('layouts.mail.registration', ['name' => $name], function ($message) use ($user, $name) {
             $message->from('no-reply@gmail.com', 'Happily Health');
             $message->to($user->email, $name)
-                ->subject('Welcome to Happily Health');
+                ->subject('Get, Set, Happily Health');
         });
     }
 

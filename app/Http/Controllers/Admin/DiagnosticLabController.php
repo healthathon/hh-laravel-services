@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Model\LabsTest;
 use App\Http\Controllers\Controller;
 use App\Model\MMGBookingMailInfo;
+use App\Respositories\LabRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -15,8 +16,11 @@ use Illuminate\Support\Facades\Validator;
 class DiagnosticLabController extends Controller
 {
 
+    private $labRepository;
+
     public function __construct()
     {
+        $this->labRepository = new LabRepository();
     }
 
     /**
@@ -63,6 +67,21 @@ class DiagnosticLabController extends Controller
             'status' => false,
             'message' => $message
         ];
+    }
+
+    public function deleteTest($id)
+    {
+        try {
+            $this->labRepository->deleteTestById($id);
+            return [
+                'status' => true
+            ];
+        } catch (\Exception $e) {
+            return [
+                'status' => false,
+                'message' => $e->getMessage(),
+            ];
+        }
     }
 
     public function fetchTests()

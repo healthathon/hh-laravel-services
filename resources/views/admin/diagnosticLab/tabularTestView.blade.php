@@ -58,9 +58,24 @@
                         })
                     },
                     deleteItem: function (item) {
-                        alert("Under Development");
-                        // const url = window.location.origin + "/admin/assess/test/" + item.id + "/delete";
-                        // return processRequest("delete", url, item, "Deleted Successfully");
+                        let url = "{{ url('admin/labs/test/:id/delete')}}";
+                        url = url.replace(':id', item.test_id);
+                        // Common method can be use
+                        $.ajax({
+                            method: "delete",
+                            url: url,
+                        }).done(function (result) {
+                            let alertRef = $(".alert");
+                            if (result.status) {
+                                alertRef.addClass("alert-success")
+                                    .removeClass("hide")
+                                    .text('Test Deleted');
+                            } else {
+                                alertRef.addClass("alert-danger")
+                                    .removeClass("hide")
+                                    .text(result.message);
+                            }
+                        });
                     },
                     updateItem: function (item) {
                         return processRequest("put", "{{url('admin/assess/1/update/test')}}", item, "Test Updated Successfully");
@@ -83,6 +98,8 @@
                             const $link = "<a href=\"" + url + "\" target=\"_blank\">Modify Test</a>";
                             return $("<div>").append($link);
                         }
+                    }, {
+                        type: 'control', editButton: false, deleteButton: true
                     }
                 ],
                 noDataContent: "Not Test Found"

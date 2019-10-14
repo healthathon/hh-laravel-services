@@ -16,4 +16,9 @@ class LabRepository
     {
         return LabsTest::whereIn('id', $commaSeparatedTestId)->select('test_name', 'price')->get();
     }
+
+    public function deleteTestById(int $id)
+    {
+        return LabsTest::where('id', $id)->delete();
+    }
 }

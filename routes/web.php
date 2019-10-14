@@ -168,6 +168,10 @@ Route::group(['prefix' => 'admin', 'namespace' => 'Admin', 'as' => 'admin.'], fu
             'as' => 'show_tests'
         ]);
         Route::put('/test/{id}/update', 'DiagnosticLabController@updateTestInfo');
+        Route::delete('/test/{id}/delete', [
+            'uses' => 'DiagnosticLabController@deleteTest',
+            'as' => 'test.delete'
+        ]);
         Route::get('/tests', 'DiagnosticLabController@getThyrocareTests');
         Route::get('/test/{id}/info', 'DiagnosticLabController@getSpecificTestInfo');
         Route::get('/mail/receivers', 'DiagnosticLabController@getMMGMailReceiversPage')->name("mmg.mail.receivers");
