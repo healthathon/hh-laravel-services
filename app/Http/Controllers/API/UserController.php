@@ -28,10 +28,10 @@ class UserController extends Controller
 
     /**
      * login api
-     * Modifications done by @author  Mayank Jariwala
-     * [ User Few Information  are sent to client as response after successful login]
-     * @param Request $request
+     * Modifications done by @param Request $request
      * @return \Illuminate\Http\JsonResponse
+     * @author  Mayank Jariwala
+     * [ User Few Information  are sent to client as response after successful login]
      */
     public function login(Request $request)
     {
@@ -112,6 +112,7 @@ class UserController extends Controller
             'password' => 'required',
             'city' => 'required',
             'birthday' => 'required',
+            'contact_no' => 'unique:users'
         ], $this->registerValidationMessage());
         if ($validator->fails())
             return Helpers::getResponse(401, "Validation Errors", $validator->getMessageBag()->first());
@@ -159,7 +160,8 @@ class UserController extends Controller
             'email.required' => 'User Email is require',
             'password.required' => 'User Password is require',
             'city.required' => 'City is require',
-            'birthday.required' => 'Birthday is require'
+            'birthday.required' => 'Birthday is require',
+            'contact_no.unique' => 'Contact Number is already taken',
         ];
     }
 
@@ -251,14 +253,17 @@ class UserController extends Controller
     /**
      * Updating User Profile ( No email and  password is accepted)
      *
-     * @author  Mayank Jariwala
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
+     * @author  Mayank Jariwala
      */
     public function updateProfile(Request $request)
     {
         $validate = Validator::make($request->all(), [
-            "user_id" => "required"
+            "user_id" => "required",
+            'contact_no' => 'unique:users'
+        ], [
+            'contact_no.unique' => 'Contact Number is already taken',
         ]);
         if ($validate->fails()) {
             return $this->sendResponseMessage(406, "Validation Error", $validate->getMessageBag()->all());
@@ -269,11 +274,11 @@ class UserController extends Controller
     /**
      * Simply sends a json response
      *
-     * @author Mayank Jariwala
      * @param $statusCode
      * @param $statusMessage
      * @param null $response
      * @return \Illuminate\Http\JsonResponse
+     * @author Mayank Jariwala
      */
     private function sendResponseMessage($statusCode, $statusMessage, $response = null)
     {
@@ -287,9 +292,9 @@ class UserController extends Controller
     /**
      * Updating User BMI  Information
      *
-     * @author  Mayank Jariwala
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
+     * @author  Mayank Jariwala
      */
     public function updateBMI(Request $request)
     {
@@ -327,9 +332,9 @@ class UserController extends Controller
      * NOTE: Using Lazy Loading Techniques
      *
      *
-     * @author Mayank Jariwala
      * @param $userId : Id of User
      * @return \Illuminate\Http\JsonResponse
+     * @author Mayank Jariwala
      */
     public function getUserProfileImage($userId)
     {
@@ -360,9 +365,9 @@ class UserController extends Controller
     /**
      *  Change Password Controller Function
      *
-     * @author   Mayank Jariwala
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
+     * @author   Mayank Jariwala
      */
     public function changePassword(Request $request)
     {
