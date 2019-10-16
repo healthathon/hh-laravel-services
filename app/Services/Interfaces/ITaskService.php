@@ -9,7 +9,7 @@ interface ITaskService
 {
     function getRecommendedTask(int $userId, string $category);
 
-    function getPopularTask(User $user, string $category);
+    function getPopularTask(int $userId, string $category);
 
     function dailyTaskDone(int $taskId, int $userId, bool $isMixedBag);
 

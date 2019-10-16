@@ -6,6 +6,7 @@ use App\Constants;
 use App\Exceptions\AgeRestrictionException;
 use App\Exceptions\CategoryNotFoundException;
 use App\Exceptions\GlobalException;
+use App\Exceptions\NoRecommendationException;
 use App\Exceptions\RegimenNotFoundException;
 use App\Exceptions\RestrictionLevelException;
 use App\Exceptions\TaskAlreadyDoneException;
@@ -49,20 +50,14 @@ class TaskControllerV2 extends Controller
     public function getRecommendedTask($userId, $category)
     {
         try {
-            $user = $this->userRepoObject->getUser($userId);
-            $this->isAgeEligibilityCriteriaPass($user->birthday);
-            if ($this->isMentalLevelInterventionState($category, $user->taskInformation->mental_level) || $this->isHospitalizationIssuePending($user)) {
-                return Helpers::getResponse(400, Constants::NO_RECOMMENDATION_ADVISE_MESSAGE);
-            } else {
-                $recommendedTasks = $this->taskServiceObject->getRecommendedTask($userId, $category);
-                return response()->json([
-                    "statusCode" => 200,
-                    "statusMessage" => "Recommended Tasks",
-                    "response" => $recommendedTasks
-                ])->withHeaders([
-                    "Content-Type" => "application/json"
-                ]);
-            }
+            $recommendedTasks = $this->taskServiceObject->getRecommendedTask($userId, $category);
+            return response()->json([
+                "statusCode" => 200,
+                "statusMessage" => "Recommended Tasks",
+                "response" => $recommendedTasks
+            ])->withHeaders([
+                "Content-Type" => "application/json"
+            ]);
         } catch (UserNotFoundException $e) {
             return $e->sendUserNotFoundExceptionResponse();
         } catch (RestrictionLevelException $e) {
@@ -71,51 +66,29 @@ class TaskControllerV2 extends Controller
             return $e->sendCategoryNotFoundExceptionResponse();
         } catch (AgeRestrictionException $exception) {
             return $exception->ageRestrictionMessageResponse();
+        } catch (NoRecommendationException $e) {
+            return $e->noRecommendationAdviseResponse();
         } catch (\Exception $e) {
             Log::error("Recommendation Exception thrown" . $e->getTraceAsString());
             return Helpers::getResponse(500, "Server Error", $e->getMessage());
         }
     }
 
-    /**
-     * @param string $birthDate
-     * @throws AgeRestrictionException
-     */
-    private function isAgeEligibilityCriteriaPass(string $birthDate)
-    {
-        $age = Carbon::parse($birthDate)->age;
-        if ($age < 18 || $age > 60)
-            throw new AgeRestrictionException();
-    }
-
-    private function isMentalLevelInterventionState(string $category, int $mentalLevel)
-    {
-        return (strtolower($category) === "mental" && $mentalLevel == 1);
-    }
-
-    private function isHospitalizationIssuePending($user)
-    {
-        $shaObject = ShortHealthAssessment::where("question", "like", "%hospitalisation due")->first();
-        $yesAnswerId = $shaObject->answers->where("answer", ucfirst("yes"))->first()->id;
-        $shaAnswerGivenByUserCollection = array_column($user->getUserHealthHistory->toArray(), "answer_id");
-        return in_array($yesAnswerId, $shaAnswerGivenByUserCollection) ? true : false;
-    }
-
     public function getPopularTasks($userId, $category)
     {
         try {
-            $user = $this->userRepoObject->getUser($userId);
-            $this->isAgeEligibilityCriteriaPass($user->birthday);
-            if ($this->isMentalLevelInterventionState($category, $user->taskInformation->mental_level) || $this->isHospitalizationIssuePending($user)) {
-                return Helpers::getResponse(400, Constants::NO_RECOMMENDATION_ADVISE_MESSAGE);
-            } else {
-                $popularTasks = $this->taskServiceObject->getPopularTask($user, $category);
-                return Helpers::getResponse(200, "Popular Tasks", $popularTasks);
-            }
+            $popularTasks = $this->taskServiceObject->getPopularTask($userId, $category);
+            return Helpers::getResponse(200, "Popular Tasks", $popularTasks);
         } catch (UserNotFoundException $e) {
             return $e->sendUserNotFoundExceptionResponse();
+        } catch (RestrictionLevelException $e) {
+            return $e->sendRestrictionLevelException();
+        } catch (CategoryNotFoundException $e) {
+            return $e->sendCategoryNotFoundExceptionResponse();
         } catch (AgeRestrictionException $exception) {
             return $exception->ageRestrictionMessageResponse();
+        } catch (NoRecommendationException $e) {
+            return $e->noRecommendationAdviseResponse();
         } catch (\Exception $e) {
             return Helpers::getResponse(500, "Server Error", $e->getMessage());
         }

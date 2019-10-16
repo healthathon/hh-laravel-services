@@ -4,14 +4,17 @@ namespace App\Services;
 
 
 use App\Constants;
+use App\Exceptions\AgeRestrictionException;
 use App\Exceptions\CategoryNotFoundException;
 use App\Exceptions\GlobalException;
+use App\Exceptions\NoRecommendationException;
 use App\Exceptions\RestrictionLevelException;
 use App\Exceptions\TaskAlreadyDoneException;
 use App\Exceptions\UserNotFoundException;
 use App\Exceptions\UserNotRegisteredForTask as UserNotRegisteredForTaskException;
 use App\Helpers;
 use App\Http\Controllers\Api\FeedsController;
+use App\Model\ShortHealthAssessment;
 use App\Model\Tasks\UserTaskTracker;
 use App\Model\User;
 use App\Model\UserAchievements;
@@ -23,6 +26,7 @@ use App\Respositories\TaskBankRepository;
 use App\Respositories\UserRepository;
 use App\Respositories\WeeklyTaskRepository;
 use App\Services\Interfaces\ITaskService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -85,10 +89,11 @@ class TaskServices implements ITaskService
      * @param int $userId
      * @param string $category
      * @return array|\Illuminate\Http\JsonResponse
+     * @throws AgeRestrictionException
      * @throws CategoryNotFoundException
+     * @throws NoRecommendationException
      * @throws RestrictionLevelException
      * @throws UserNotFoundException
-     * @throws \Exception
      */
     public function getRecommendedTask(int $userId, string $category)
     {
@@ -96,6 +101,9 @@ class TaskServices implements ITaskService
         $user = $this->userRepo->getUser($userId);
         if ($user->assessmentRecord == null || $user->assessmentRecord->finish_state !== 1)
             return $this->mixedBagService->getCategoryMixedBagTasks($userId, $category);
+        $this->isAgeEligibilityCriteriaPass($user->birthday);
+        $this->isMentalLevelInterventionState($category, $user->taskInformation->mental_level);
+        $this->isHospitalizationIssuePending($user);
         $categoryId = $this->categoryRepo->getCategoryIdByName($category);
         $categoryName = strtolower($category);
         $category = $category === Constants::PHYSICAL ? "physical" : strtolower($category);
@@ -140,6 +148,46 @@ class TaskServices implements ITaskService
             'task' => $taskResponse
         ];
         return $responseArr;
+    }
+
+
+    /**
+     * @param string $birthDate
+     * @throws AgeRestrictionException
+     */
+    private function isAgeEligibilityCriteriaPass(string $birthDate)
+    {
+        $age = Carbon::parse($birthDate)->age;
+        if ($age < 18 || $age > 60)
+            throw new AgeRestrictionException();
+    }
+
+    /**
+     * @param string $category
+     * @param int $mentalLevel
+     * @return bool
+     * @throws NoRecommendationException
+     */
+    private function isMentalLevelInterventionState(string $category, int $mentalLevel)
+    {
+        if (strtolower($category) === "mental" && $mentalLevel == 1)
+            throw new NoRecommendationException();
+        return false;
+    }
+
+    /**
+     * @param $user
+     * @return bool
+     * @throws NoRecommendationException
+     */
+    private function isHospitalizationIssuePending($user)
+    {
+        $shaObject = ShortHealthAssessment::where("question", "like", "%hospitalisation due")->first();
+        $yesAnswerId = $shaObject->answers->where("answer", ucfirst("yes"))->first()->id;
+        $shaAnswerGivenByUserCollection = array_column($user->getUserHealthHistory->toArray(), "answer_id");
+        if (in_array($yesAnswerId, $shaAnswerGivenByUserCollection))
+            throw new NoRecommendationException();
+        return false;
     }
 
     private function getFormattedTaskResponse(User $user, Collection $tasks)
@@ -408,9 +456,9 @@ class TaskServices implements ITaskService
 
     private function updateAchievementsAndFeeds($userId, $taskBankId, $weekNo, $day)
     {
-        $weekTaskObject = $this->weeklyTaskRepo->getWeekTaskObject($taskBankId, $weekNo);
-        $dayImageColumn = "day$day" . "_badge";
         try {
+            $weekTaskObject = $this->weeklyTaskRepo->getWeekTaskObject($taskBankId, $weekNo);
+            $dayImageColumn = "day$day" . "_badge";
             Log::info("Badge Image : " . $weekTaskObject->$dayImageColumn . " Image  $dayImageColumn");
             if ($day == 7) {
                 $achievementData = [
@@ -541,16 +589,24 @@ class TaskServices implements ITaskService
     }
 
     /**
-     * @param User $user
+     * @param int $userId
      * @param string $category
      * @return array|\Illuminate\Http\JsonResponse
+     * @throws AgeRestrictionException
      * @throws CategoryNotFoundException
+     * @throws NoRecommendationException
      * @throws RestrictionLevelException
+     * @throws UserNotFoundException
      */
-    function getPopularTask(User $user, string $category)
+    function getPopularTask(int $userId, string $category)
     {
+        $user = null;
+        $user = $this->userRepo->getUser($userId);
         if ($user->assessmentRecord == null || $user->assessmentRecord->finish_state !== 1)
             return $this->mixedBagService->getCategoryMixedBagTasks($user->id, $category);
+        $this->isAgeEligibilityCriteriaPass($user->birthday);
+        $this->isMentalLevelInterventionState($category, $user->taskInformation->mental_level);
+        $this->isHospitalizationIssuePending($user);
         $categoryId = $this->categoryRepo->getCategoryIdByName($category);
         $categoryName = strtolower($category);
         $category = $category === Constants::PHYSICAL ? "physical" : strtolower($category);
@@ -739,9 +795,9 @@ class TaskServices implements ITaskService
     /**
      * Map 3 States with Level 1,2,3 and simply return
      *
-     * @author Mayank Jariwala
      * @param $state : Tag State
      * @return int : Level
+     * @author Mayank Jariwala
      */
     private function mapStateToLevel($state)
     {
