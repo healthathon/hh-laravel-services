@@ -76,7 +76,6 @@ class TaskServices implements ITaskService
 
     private function getInitialCategoryTaskCount()
     {
-        //Dummy Values
         return [
             Constants::PHYSICS . '_count' => 0,
             Constants::NUTRITION . '_count' => 0,
@@ -182,11 +181,13 @@ class TaskServices implements ITaskService
      */
     private function isHospitalizationIssuePending($user)
     {
-        $shaObject = ShortHealthAssessment::where("question", "like", "%hospitalisation due")->first();
-        $yesAnswerId = $shaObject->answers->where("answer", ucfirst("yes"))->first()->id;
-        $shaAnswerGivenByUserCollection = array_column($user->getUserHealthHistory->toArray(), "answer_id");
-        if (in_array($yesAnswerId, $shaAnswerGivenByUserCollection))
-            throw new NoRecommendationException();
+        $shaObject = ShortHealthAssessment::where("question", "like", "%hospitalisation due%")->first();
+        if ($shaObject->answers != null) {
+            $yesAnswerId = $shaObject->answers->where("answer", ucfirst("yes"))->first()->id;
+            $shaAnswerGivenByUserCollection = array_column($user->getUserHealthHistory->toArray(), "answer_id");
+            if (in_array($yesAnswerId, $shaAnswerGivenByUserCollection))
+                throw new NoRecommendationException();
+        }
         return false;
     }
 

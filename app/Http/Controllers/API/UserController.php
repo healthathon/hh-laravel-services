@@ -104,16 +104,21 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validationArr = [
             'type' => 'required',
             'first_name' => 'required',
             'last_name' => 'required',
             'email' => 'required|unique:users',
-            'password' => 'required',
+            'name' => 'unique:users',
             'city' => 'required',
             'birthday' => 'required',
             'contact_no' => 'unique:users'
-        ], $this->registerValidationMessage());
+        ];
+        if ($request->type === "normal")
+            $validationArr += [
+                'password' => 'required',
+            ];
+        $validator = Validator::make($request->all(), $validationArr, $this->registerValidationMessage());
         if ($validator->fails())
             return Helpers::getResponse(401, "Validation Errors", $validator->getMessageBag()->first());
         try {
@@ -129,7 +134,8 @@ class UserController extends Controller
             if (isset($request->device_token) && !empty($request->device_token)) {
                 $user->device_token = $request->device_token;
             }
-            $user->password = bcrypt($request->input('password'));
+            if ($request->type === "normal")
+                $user->password = bcrypt($request->input('password'));
             if ($request->get('type') == "social") {
                 $user->social_id = $request->get('social_id');
                 $user->platform = $request->get('platform');

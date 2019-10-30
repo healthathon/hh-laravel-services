@@ -70,7 +70,7 @@ class TaskControllerV2 extends Controller
             return $e->noRecommendationAdviseResponse();
         } catch (\Exception $e) {
             Log::error("Recommendation Exception thrown" . $e->getTraceAsString());
-            return Helpers::getResponse(500, "Server Error", $e->getMessage());
+            return Helpers::getResponse(500, "Server Error", $e->getTrace());
         }
     }
 
