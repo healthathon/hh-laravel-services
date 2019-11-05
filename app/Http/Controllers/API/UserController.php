@@ -10,7 +10,10 @@ use App\Http\Controllers\Controller;
 use App\Model\User;
 use App\Respositories\UserRepository;
 use App\Services\UserService;
+use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
@@ -29,7 +32,7 @@ class UserController extends Controller
     /**
      * login api
      * Modifications done by @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      * @author  Mayank Jariwala
      * [ User Few Information  are sent to client as response after successful login]
      */
@@ -100,7 +103,7 @@ class UserController extends Controller
      * Register api
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function register(Request $request)
     {
@@ -119,8 +122,10 @@ class UserController extends Controller
                 'password' => 'required',
             ];
         $validator = Validator::make($request->all(), $validationArr, $this->registerValidationMessage());
-        if ($validator->fails())
-            return Helpers::getResponse(401, "Validation Errors", $validator->getMessageBag()->first());
+        if ($validator->fails()) {
+            $validationMsg = $validator->getMessageBag()->first();
+            return Helpers::getResponse(401, $validationMsg);
+        }
         try {
             $user = new User();
             $user->first_name = $request->input('first_name');
@@ -152,7 +157,7 @@ class UserController extends Controller
             } else {
                 return Helpers::getResponse(400, "Registered failed");
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return Helpers::getResponse(500, "Exception Occurred", $e->getMessage());
         }
     }
@@ -174,7 +179,7 @@ class UserController extends Controller
     /**
      * details api
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
 
     public function logout()
@@ -260,7 +265,7 @@ class UserController extends Controller
      * Updating User Profile ( No email and  password is accepted)
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      * @author  Mayank Jariwala
      */
     public function updateProfile(Request $request)
@@ -269,10 +274,11 @@ class UserController extends Controller
             "user_id" => "required",
             'contact_no' => 'unique:users'
         ], [
-            'contact_no.unique' => 'Contact Number is already taken',
+            'contact_no.unique' => 'Please enter unique contact number',
         ]);
         if ($validate->fails()) {
-            return $this->sendResponseMessage(406, "Validation Error", $validate->getMessageBag()->all());
+            $message = $validate->getMessageBag()->first();
+            return Helpers::getResponse(406, $message);
         }
         return $this->userService->updateProfile($request);
     }
@@ -283,7 +289,7 @@ class UserController extends Controller
      * @param $statusCode
      * @param $statusMessage
      * @param null $response
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      * @author Mayank Jariwala
      */
     private function sendResponseMessage($statusCode, $statusMessage, $response = null)
@@ -299,7 +305,7 @@ class UserController extends Controller
      * Updating User BMI  Information
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      * @author  Mayank Jariwala
      */
     public function updateBMI(Request $request)
@@ -318,7 +324,7 @@ class UserController extends Controller
     /**
      * Update Profile Picture of User
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      */
     public function updatePhoto(Request $request)
     {
@@ -339,7 +345,7 @@ class UserController extends Controller
      *
      *
      * @param $userId : Id of User
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      * @author Mayank Jariwala
      */
     public function getUserProfileImage($userId)
@@ -372,7 +378,7 @@ class UserController extends Controller
      *  Change Password Controller Function
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
      * @author   Mayank Jariwala
      */
     public function changePassword(Request $request)

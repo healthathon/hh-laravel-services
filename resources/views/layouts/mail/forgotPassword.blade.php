@@ -7,11 +7,14 @@
 <body>
 <div class="container-fluid">
     <p> Hello {!! $name !!}, </p>
-    <p> Our System has generated an password for you, please use this for during login operation and you
-        change your password from the application. </p>
-    <p>Your new login credentials: <br/><br/>
+    <p> This email confirms that your password has been changed.</p>
+    <p>To log on to the application, use the following credentials<br/><br/>
         <b>Email:</b> {!! $email !!}<br/>
         <b>Password:</b> {!! $password !!}
+    </p>
+    <p>
+        If you have any questions or encounter any problems signing in, please contact <a
+                href="mailto:hhtechmasters@gmail.com">App Administrator</a>.
     </p>
     <p><b>Regards</b><br/>Mansi<br/>Happily Health</p>
 </div>

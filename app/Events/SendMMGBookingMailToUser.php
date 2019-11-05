@@ -1,12 +1,5 @@
 <?php
 
-/**
- * This Class represents SendRegistrationMail Event which fires on external call
- * @author  Mayank Jariwala <menickwa@gmail.com>
- * @package  App\Events
- * @version  v.1.1
- */
-
 namespace App\Events;
 
 use App\Model\User;
@@ -15,21 +8,15 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * Class SendRegistrationMail
- *
- * This event is fire when new user register into an application
- */
-class SendRegistrationMail
+class SendMMGBookingMailToUser
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
     public $user;
 
     /**
      * Create a new event instance.
      *
-     * @param User $user : User Object
+     * @param User $user
      */
     public function __construct(User $user)
     {

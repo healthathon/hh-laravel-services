@@ -11,6 +11,7 @@
 
 namespace App\Services;
 
+use App\Events\SendMMGBookingMailToUser;
 use App\Exceptions\ThyrocareResponseException;
 use App\Helpers;
 use App\Http\Controllers\Admin\AssessmentController;
@@ -58,8 +59,8 @@ class ThyroCareServices
     /**
      * Invoke by saveAllThyrocareProducts() function
      *
-     * @author  Mayank Jariwala
      * @return \Illuminate\Http\JsonResponse
+     * @author  Mayank Jariwala
      */
     public function saveAllThyrocareProducts()
     {
@@ -176,10 +177,10 @@ class ThyroCareServices
 
     /**
      *  Get Thyrocare Appointment Slots
-     * @author  Mayank Jariwala
      * @param $date
      * @param $pincode
      * @return \Illuminate\Http\JsonResponse
+     * @author  Mayank Jariwala
      */
     public function getAppointmentSlots($date, $pincode)
     {
@@ -211,9 +212,9 @@ class ThyroCareServices
     }
 
     /**
-     * @author  Mayank Jariwala
      * @param $pincode
      * @return \Illuminate\Http\JsonResponse
+     * @author  Mayank Jariwala
      */
     public function getPincodeAvailability($pincode)
     {
@@ -246,10 +247,10 @@ class ThyroCareServices
     /**
      *  Booking Functionality of Thyrocare Services
      *
-     * @author  Mayank Jariwala
      * @param $user_id
      * @param $request
      * @return mixed
+     * @author  Mayank Jariwala
      */
     public function bookThyrocareServiceOrder($user_id, $request)
     {
@@ -320,9 +321,9 @@ class ThyroCareServices
 
     /**
      *  Generate Random Order Id of length 6
-     * @author  Mayank Jariwala
      * @param int $length
      * @return string
+     * @author  Mayank Jariwala
      */
     private function generateOrderId($length = 6)
     {
@@ -391,6 +392,7 @@ class ThyroCareServices
         try {
             MMGBookingDetails::insert($testIdCollection);
             DB::commit();
+            event(new SendMMGBookingMailToUser($user));
             $job = (new SendMMGBookingEmail($user, $names->toArray()))->onQueue('emails');
             $this->dispatch($job);
         } catch (\Exception $e) {

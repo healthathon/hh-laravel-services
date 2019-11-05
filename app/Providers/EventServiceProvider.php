@@ -24,7 +24,10 @@ class EventServiceProvider extends ServiceProvider
         ],
         'App\Events\UpdateUserState' => [
             'App\Listeners\UpdateUserStateListener'
-        ]
+        ],
+        'App\Events\SendMMGBookingMailToUser' => [
+            'App\Listeners\SendMMGBookingMailToUserListener'
+        ],
     ];
 
     /**

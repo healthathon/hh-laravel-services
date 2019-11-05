@@ -1,10 +1,9 @@
 @component("mail::message")
 
-    Hello, Application user name <b>{{ $name }}</b> has registered for new tests. <br/>
-
     <ul>
-        <li> Name: {{ $name }}</li>
-        <li> Email Address: {{ $email }}</li>
+        <li> Customer Name:- {{ $user->first_name }} {{ $user->last_name }}</li>
+        <li> Phone No:- {{ is_null($user->contact_no) ? "NIL" : $user->contact_no }}</li>
+        <li> Email Address:- {{ $user->email }}</li>
     </ul>
     @component('mail::table')
         | Test Name       | Test Price         |

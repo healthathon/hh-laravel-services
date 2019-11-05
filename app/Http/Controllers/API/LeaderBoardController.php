@@ -6,7 +6,6 @@ use App\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\User;
 use App\Model\UsersTaskInformations;
-use http\Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;

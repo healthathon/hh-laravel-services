@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\MMGBookingMail;
+use App\Model\User;
 use App\Services\LabService;
 use Illuminate\Support\Facades\Mail;
 
@@ -39,11 +40,24 @@ class MailController extends Controller
         Mail::send('layouts.mail.forgotPassword', ['name' => $name, 'email' => $user->email, 'password' => $newPassword], function ($message) use ($user, $name) {
             $message->from('no-reply@gmail.com', 'Happily Health');
             $message->to($user->email, $name)
-                ->subject('Happily Health - Password Reset');
+                ->subject('Your password has been changed');
         });
     }
 
     public static function sendEmailVerificationEmail()
     {
+    }
+
+    /**
+     * @param User $user
+     */
+    public static function sendMMGBookingMailToUser(User $user)
+    {
+        $name = $user->first_name . " " . $user->last_name;
+        Mail::send('layouts.mail.userbooking', ['name' => $name], function ($message) use ($user, $name) {
+            $message->from('no-reply@gmail.com', 'Happily Health');
+            $message->to($user->email, $name)
+                ->subject('Your Mapmygenome order confirmation');
+        });
     }
 }
