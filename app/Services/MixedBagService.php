@@ -56,6 +56,13 @@ class MixedBagService
         return $mbHistory->save();
     }
 
+    public function unsubscribeUserFromMB($userId, $regimenId)
+    {
+        return MixedBagUserHistory::where('user_id', $userId)
+            ->where('regimen_id', $regimenId)
+            ->delete();
+    }
+
     private function initUserObject($regimenId)
     {
         $historyObj = [

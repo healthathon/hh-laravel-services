@@ -564,6 +564,10 @@ class TaskServices implements ITaskService
     function unregisterTask(int $userId, int $taskId, bool $isMixedBag)
     {
         $user = $this->userRepo->getUser($userId);
+        if ($isMixedBag) {
+            $removalStatus = $this->mixedBagService->unsubscribeUserFromMB($userId, $taskId);
+            return $removalStatus;
+        }
         $userTasks = $user->doingTask;
         $userDoingRegimenIds = array_column($userTasks->toArray(), 'regimen_id');
         if ($userTasks == null || $userTasks != null && !in_array($taskId, $userDoingRegimenIds))
