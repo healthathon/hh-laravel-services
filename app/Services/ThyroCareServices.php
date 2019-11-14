@@ -12,6 +12,7 @@
 namespace App\Services;
 
 use App\Events\SendMMGBookingMailToUser;
+use App\Events\SendMMGBookingMailToAdmin;
 use App\Exceptions\ThyrocareResponseException;
 use App\Helpers;
 use App\Http\Controllers\Admin\AssessmentController;
@@ -32,7 +33,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-
 /**
  * Class ThyroCareServices : Execute All Services developed by thyrocare lab
  *
@@ -388,13 +388,28 @@ class ThyroCareServices
                 "updated_at" => date("y-m-d h:i:s"),
             ];
         }
+
+//        $user->email = "jeet21192@hotmail.com";
+
+//        dd($user);
+
+//        Log::info("request");
+
+
         DB::beginTransaction();
         try {
             MMGBookingDetails::insert($testIdCollection);
             DB::commit();
             event(new SendMMGBookingMailToUser($user));
-            $job = (new SendMMGBookingEmail($user, $names->toArray()))->onQueue('emails');
-            $this->dispatch($job);
+            // sending email to admin based on config admin email using event   :: JEET DUMS - 12-11-2019
+            $data = [];
+            $data['testNamesArr'] = $names->toArray();
+            $data['address'] = isset($request['address']) ? $request['address'] : '';
+            $data['pincode'] = isset($request['pincode']) ? $request['pincode'] : '';
+//            Log::info($data);
+            event(new SendMMGBookingMailToAdmin($user,$data));
+//            $job = (new SendMMGBookingEmail($user, data))->onQueue('emails');
+//            $this->dispatch($job);
         } catch (\Exception $e) {
             DB::rollBack();
             throw $e;

@@ -10,10 +10,8 @@
   "require": {
     "php": "^7.1.3",
     "ext-json": "*",
-    "ext-mongodb": "*",
     "doctrine/dbal": "^2.9",
     "fideloper/proxy": "^4.0",
-    "jenssegers/mongodb": "^3.5",
     "jrm2k6/cloudder": "0.4.*",
     "laravel/framework": "5.6.*",
     "laravel/passport": "^7.0",

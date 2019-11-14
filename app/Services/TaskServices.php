@@ -181,10 +181,18 @@ class TaskServices implements ITaskService
      */
     private function isHospitalizationIssuePending($user)
     {
-        $shaObject = ShortHealthAssessment::where("question", "like", "%hospitalisation due%")->first();
-        if ($shaObject->answers != null) {
+
+        $shaObject = ShortHealthAssessment::where("is_hospitalisation", 'yes')->first();
+
+//        dd($shaObject->answers);
+
+        if (isset($shaObject) && $shaObject->answers != null) {
             $yesAnswerId = $shaObject->answers->where("answer", ucfirst("yes"))->first()->id;
+
             $shaAnswerGivenByUserCollection = array_column($user->getUserHealthHistory->toArray(), "answer_id");
+
+//            dd($shaAnswerGivenByUserCollection);
+
             if (in_array($yesAnswerId, $shaAnswerGivenByUserCollection))
                 throw new NoRecommendationException();
         }
@@ -200,14 +208,35 @@ class TaskServices implements ITaskService
             foreach ($task_group as $key => $task) {
                 $userTaskDetails = $user->doingTask()->where('regimen_id', $task->id)
                     ->where('user_id', $user->id)->first();
+
+
+
                 if ($userTaskDetails == null || $userTaskDetails->start_date == null) {
                     $predicted_week_number = -1;
                     $predicted_today = -1;
                 } else {
+
                     $dateDifference = date_diff($this->helpers->date, new \DateTime($userTaskDetails->start_date));
                     $day = ($dateDifference->days % 7) + 1;
                     $predicted_week_number = (int)($dateDifference->days / 7) + 1;
                     $predicted_today = $day;
+
+                    if($predicted_week_number > 1){
+                        $regimenObject = $userTaskDetails->regimenInfo->hasWeeklyTasks()->where('week', $predicted_week_number)->first();
+                        $taskTracker = $userTaskDetails->taskTracker()->where('week',"<", $predicted_week_number)->orderBy('week',"DESC")->first();
+
+                        if(isset($taskTracker) && isset($regimenObject) && $taskTracker->week_percentage < $regimenObject->y){
+                            $days = ((7*$predicted_week_number)+$predicted_today);
+                            $date = new \DateTime($userTaskDetails->start_date);
+                            $date->modify('+'.$days.' day');
+                            $userTaskDetails->start_date = $date->format('Y-m-d');;
+
+                            $dateDifference = date_diff($this->helpers->date, new \DateTime($userTaskDetails->start_date));
+                            $day = ($dateDifference->days % 7) + 1;
+                            $predicted_week_number = (int)($dateDifference->days / 7) + 1;
+                            $predicted_today = $day;
+                        }
+                    }
                 }
                 $taskDetails = [];
                 $weeklyTasks = $task->hasWeeklyTasks;
@@ -575,15 +604,17 @@ class TaskServices implements ITaskService
         DB::beginTransaction();
         try {
             DB::transaction(function () use ($taskId, $userId) {
-                $taskBankObj = $this->taskBankRepo->getRegimenById($taskId);
+//                $taskBankObj = $this->taskBankRepo->getRegimenById($taskId);
                 $userTask = UserTask::where('user_id', $userId)
                     ->where('regimen_id', $taskId)
                     ->first();
                 if (count($userTask->taskTracker) > 0)
                     $userTask->taskTracker()->delete();
-                $userTask->delete();
-                $taskBankObj->registered_users -= 1;
-                $taskBankObj->save();
+
+                $userTask->register_date = date('Y-m-d');
+                $userTask->start_date = null;
+                $userTask->last_done_date = null;
+                $userTask->save();
             });
             DB::commit();
             return true;

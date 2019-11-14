@@ -32,11 +32,14 @@ class MMGBookingMail extends Mailable
      */
     public function build()
     {
+        $subject = "Booking For MapMyGenome";
+
         return $this->from("no-reply@gmail.com", 'Happily Health')
-            ->subject("Booking For MapMyGenome")
+            ->subject($subject)
             ->markdown('emails.mmg.booking', [
                 'testNamesArr' => $this->testNamesArr,
-                'user' => $this->user
+                'user' => $this->user,
+                'subject'   =>  $subject
             ]);
     }
 }

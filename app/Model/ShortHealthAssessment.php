@@ -9,7 +9,7 @@ class ShortHealthAssessment extends Model
     protected $table = "short_health_assessments";
 
     protected $fillable = [
-        'header', 'question', 'multiple'
+        'header', 'question', 'multiple', 'is_hospitalisation'
     ];
 
     protected $attributes = [

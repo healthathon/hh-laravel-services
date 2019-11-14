@@ -651,7 +651,11 @@
 <p class="c5 c6"><span class="c9 c2"></span></p>
 <p class="c5"><span class="c20 c2 c24">Tick off your daily tasks and let the fun begin!</span></p>
 <p class="c5 c6"><span class="c4 c2"></span></p>
-<p class="c5"><span class="c22">GET STARTED NOW</span></p>
+<div style="width: 100%;text-align: center;">
+    <br/>
+    <a style="border: solid 1px;padding: 10px;text-align: center;cursor: pointer;" href="https://apps.apple.com/in/app/happily-health/id1451112423" class="c5"><span class="c22">GET STARTED NOW</span></a>
+    <br/>&nbsp;
+</div>
 <p class="c5 c6"><span class="c4 c2"></span></p>
 <a id="t.278c2cfcdacb29c3ee7579c4090c51b69c5e00fc"></a>
 <a id="t.1"></a>

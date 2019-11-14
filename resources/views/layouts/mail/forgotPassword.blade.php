@@ -14,7 +14,7 @@
     </p>
     <p>
         If you have any questions or encounter any problems signing in, please contact <a
-                href="mailto:hhtechmasters@gmail.com">App Administrator</a>.
+                href="mailto:support@happilyhealth.com">App Administrator</a>.
     </p>
     <p><b>Regards</b><br/>Mansi<br/>Happily Health</p>
 </div>

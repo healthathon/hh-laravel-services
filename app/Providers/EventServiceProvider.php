@@ -28,6 +28,9 @@ class EventServiceProvider extends ServiceProvider
         'App\Events\SendMMGBookingMailToUser' => [
             'App\Listeners\SendMMGBookingMailToUserListener'
         ],
+        'App\Events\SendMMGBookingMailToAdmin' => [
+            'App\Listeners\SendMMGBookingMailToAdminListener'
+        ],
     ];
 
     /**

@@ -1,0 +1,1 @@
+ALTER TABLE `short_health_assessments` ADD `is_hospitalisation` ENUM('yes','no') NOT NULL DEFAULT 'no' AFTER `is_scoreable`;
