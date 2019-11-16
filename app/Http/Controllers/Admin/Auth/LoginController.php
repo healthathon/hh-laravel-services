@@ -52,6 +52,10 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $this->validateLogin($request);
+
+//        if (Auth::guard('admin')->attempt($request)) {
+//            //
+//        }
         if ($this->attemptLogin($request)) {
             return redirect()->route('admin.home');
         }
@@ -60,7 +64,8 @@ class LoginController extends Controller
 
     public function logout()
     {
-        Auth::logout();
+
+        Auth::guard('admin')->logout();
         return redirect('admin/login/');
     }
 }

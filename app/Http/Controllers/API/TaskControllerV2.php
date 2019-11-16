@@ -32,6 +32,7 @@ class TaskControllerV2 extends Controller
 
     public function __construct()
     {
+
         $this->taskServiceObject = new TaskServices();
         $this->userRepoObject = new UserRepository();
         $this->mixedBagController = new MixedBagController();
@@ -51,9 +52,18 @@ class TaskControllerV2 extends Controller
     {
         try {
             $recommendedTasks = $this->taskServiceObject->getRecommendedTask($userId, $category);
+
+            $statusCode = 200;$taskWarningMessage="";
+            if(isset($recommendedTasks['stopToContinueNextWeekTask']) && $recommendedTasks['stopToContinueNextWeekTask'] == true){
+                $statusCode = 201;
+                $taskWarningMessage = "As you have been inactive for more than 1 week. Your progress has been reset to previous week";
+            }
+            unset($recommendedTasks['stopToContinueNextWeekTask']);
+
             return response()->json([
-                "statusCode" => 200,
+                "statusCode" => $statusCode,
                 "statusMessage" => "Recommended Tasks",
+                "taskWarningMessage" => $taskWarningMessage,
                 "response" => $recommendedTasks
             ])->withHeaders([
                 "Content-Type" => "application/json"
@@ -76,9 +86,29 @@ class TaskControllerV2 extends Controller
 
     public function getPopularTasks($userId, $category)
     {
+
         try {
+
             $popularTasks = $this->taskServiceObject->getPopularTask($userId, $category);
-            return Helpers::getResponse(200, "Popular Tasks", $popularTasks);
+
+            $statusCode = 200;$taskWarningMessage="";
+            if(isset($popularTasks['stopToContinueNextWeekTask']) && $popularTasks['stopToContinueNextWeekTask'] == true){
+                $statusCode = 201;
+                $taskWarningMessage = "As you have been inactive for more than 1 week. Your progress has been reset to previous week";
+            }
+
+            unset($popularTasks['stopToContinueNextWeekTask']);
+
+            return response()->json([
+                "statusCode" => $statusCode,
+                "statusMessage" => "Popular Tasks",
+                "taskWarningMessage" => $taskWarningMessage,
+                "response" => $popularTasks
+            ])->withHeaders([
+                "Content-Type" => "application/json"
+            ]);
+
+//            return Helpers::getResponse($statusCode, "Popular Tasks", $popularTasks);
         } catch (UserNotFoundException $e) {
             return $e->sendUserNotFoundExceptionResponse();
         } catch (RestrictionLevelException $e) {
