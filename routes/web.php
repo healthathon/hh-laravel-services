@@ -11,6 +11,19 @@ Route::get('/', function () {
     return redirect()->route("admin.loginForm");
 });
 
+Route::get('/cronjob/log', function () {
+
+    $path = public_path('reset_job_log.txt');
+
+    if(file_exists($path)) {
+        echo file_get_contents($path);
+        die();
+    }else{
+        echo "Log not available";die();
+    }
+});
+
+
 Route::group(['prefix' => 'admin', 'namespace' => 'Admin', 'as' => 'admin.'], function () {
 
     // Auth Routes

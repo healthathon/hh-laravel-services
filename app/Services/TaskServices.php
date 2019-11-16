@@ -144,7 +144,8 @@ class TaskServices implements ITaskService
         $responseArr = [
             'isMixedBag' => false,
             "Doing_Tasks" => $DoingTaskIds,
-            'task' => $taskResponse
+            'task' => $taskResponse['taskResponse'],
+            'stopToContinueNextWeekTask' => $taskResponse['stopToContinueNextWeekTask']
         ];
         return $responseArr;
     }
@@ -201,6 +202,7 @@ class TaskServices implements ITaskService
 
     private function getFormattedTaskResponse(User $user, Collection $tasks)
     {
+        $stopToContinueNextWeekTask = false;
         $taskResponse = [];
         $regimenIdsUserDoing = array_column($user->doingTask->toArray(), "regimen_id");
         foreach ($tasks->getIterator() as $regimen_name => $task_group) {
@@ -209,32 +211,29 @@ class TaskServices implements ITaskService
                 $userTaskDetails = $user->doingTask()->where('regimen_id', $task->id)
                     ->where('user_id', $user->id)->first();
 
-
+//                dd($userTaskDetails);
 
                 if ($userTaskDetails == null || $userTaskDetails->start_date == null) {
                     $predicted_week_number = -1;
                     $predicted_today = -1;
                 } else {
 
-                    $dateDifference = date_diff($this->helpers->date, new \DateTime($userTaskDetails->start_date));
+                    $dateDifference = date_diff($this->helpers->date, new \DateTime($userTaskDetails->new_start_date));
                     $day = ($dateDifference->days % 7) + 1;
                     $predicted_week_number = (int)($dateDifference->days / 7) + 1;
                     $predicted_today = $day;
 
                     if($predicted_week_number > 1){
                         $regimenObject = $userTaskDetails->regimenInfo->hasWeeklyTasks()->where('week', $predicted_week_number)->first();
-                        $taskTracker = $userTaskDetails->taskTracker()->where('week',"<", $predicted_week_number)->orderBy('week',"DESC")->first();
+                        $taskTracker = $userTaskDetails->taskTracker()->where('week', $predicted_week_number-1)->orderBy('week',"DESC")->first();
 
                         if(isset($taskTracker) && isset($regimenObject) && $taskTracker->week_percentage < $regimenObject->y){
-                            $days = ((7*$predicted_week_number)+$predicted_today);
-                            $date = new \DateTime($userTaskDetails->start_date);
-                            $date->modify('+'.$days.' day');
-                            $userTaskDetails->start_date = $date->format('Y-m-d');;
-
-                            $dateDifference = date_diff($this->helpers->date, new \DateTime($userTaskDetails->start_date));
-                            $day = ($dateDifference->days % 7) + 1;
-                            $predicted_week_number = (int)($dateDifference->days / 7) + 1;
-                            $predicted_today = $day;
+                            $stopToContinueNextWeekTask = true;
+                            $predicted_week_number = $predicted_week_number-1;
+                            $predicted_today = 1;
+                            $taskTracker->days_status = array_fill(0,6,0);
+                            $taskTracker->week_percentage = 0;
+                            $taskTracker->save();
                         }
                     }
                 }
@@ -277,7 +276,10 @@ class TaskServices implements ITaskService
                 "tasks" => $tasks
             ];
         }
-        return $taskResponse;
+        return [
+            'stopToContinueNextWeekTask'    => $stopToContinueNextWeekTask,
+            'taskResponse'  =>  $taskResponse
+        ];
     }
 
     /**
@@ -357,6 +359,7 @@ class TaskServices implements ITaskService
             $dayMessage = $regimenObject->$dayColumnMessage;
             $userDoingTaskObj->user_id = $user->id;
             $userDoingTaskObj->start_date = $this->helpers->date->format("y-m-d");
+            $userDoingTaskObj->new_start_date = $this->helpers->date->format("y-m-d");
             $taskTracker = new UserTaskTracker();
             $taskTracker->user_task_id = $userDoingTaskObj->id;
             $taskTracker->week = $predictedWeek;
@@ -392,6 +395,7 @@ class TaskServices implements ITaskService
         $taskTracker->week_status = $weekStatus;
         $taskTracker->save();
         $userDoingTaskObj->last_done_date = $this->helpers->date->format("y-m-d");
+        $userDoingTaskObj->reset_week_counter = 2;
         $category = strtolower($userDoingTaskObj->regimenInfo->getTaskCategory->name);
         $categoryId = $userDoingTaskObj->regimenInfo->getTaskCategory->id;
         $level = $userDoingTaskObj->regimenInfo->level;
@@ -604,17 +608,15 @@ class TaskServices implements ITaskService
         DB::beginTransaction();
         try {
             DB::transaction(function () use ($taskId, $userId) {
-//                $taskBankObj = $this->taskBankRepo->getRegimenById($taskId);
+                $taskBankObj = $this->taskBankRepo->getRegimenById($taskId);
                 $userTask = UserTask::where('user_id', $userId)
                     ->where('regimen_id', $taskId)
                     ->first();
                 if (count($userTask->taskTracker) > 0)
                     $userTask->taskTracker()->delete();
-
-                $userTask->register_date = date('Y-m-d');
-                $userTask->start_date = null;
-                $userTask->last_done_date = null;
-                $userTask->save();
+                $userTask->delete();
+                $taskBankObj->registered_users -= 1;
+                $taskBankObj->save();
             });
             DB::commit();
             return true;
@@ -636,6 +638,7 @@ class TaskServices implements ITaskService
      */
     function getPopularTask(int $userId, string $category)
     {
+
         $user = null;
         $user = $this->userRepo->getUser($userId);
         if ($user->assessmentRecord == null || $user->assessmentRecord->finish_state !== 1)
@@ -660,7 +663,8 @@ class TaskServices implements ITaskService
         $responseArr = [
             'isMixedBag' => false,
             "Doing_Tasks" => $DoingTaskIds,
-            'task' => $taskResponse
+            'task' => $taskResponse['taskResponse'],
+            'stopToContinueNextWeekTask' => $taskResponse['stopToContinueNextWeekTask']
         ];
         return $responseArr;
     }
@@ -855,5 +859,30 @@ class TaskServices implements ITaskService
                 break;
         }
         return $level;
+    }
+
+    public function resetUserTaskTacking($userTaskDetails,$predicted_week_number,$predicted_today){
+
+        $taskTracker = $userTaskDetails->taskTracker()->where('week',"<", $predicted_week_number)->orderBy('week',"DESC")->first();
+
+        if(isset($taskTracker)){
+            $days = ((7*$predicted_week_number));
+            $date = new \DateTime($userTaskDetails->start_date);
+            $date->modify('+'.$days.' day');
+            $userTaskDetails->start_date = $date->format('Y-m-d');;
+
+            $dateDifference = date_diff($this->helpers->date, new \DateTime($userTaskDetails->start_date));
+            $day = ($dateDifference->days % 7) + 1;
+            $predicted_week_number = (int)($dateDifference->days / 7) + 1;
+            $predicted_today = $day;
+
+            return [
+                'predicted_week_number' =>  $predicted_week_number,
+                'predicted_today' =>  $predicted_today,
+                'start_date' =>  $userTaskDetails->start_date
+            ];
+        }else{
+            return [];
+        }
     }
 }
