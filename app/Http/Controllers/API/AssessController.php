@@ -8,6 +8,9 @@ use App\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\Assess\AssessmentQuestionsTagOrder;
 use App\Model\User;
+use App\Respositories\AssessmentQuestionsTagOrderRepository;
+use App\Respositories\AssessmentRepository;
+use App\Respositories\UserRepository;
 use App\Services\AssessmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,10 +19,16 @@ use Illuminate\Support\Facades\Validator;
 class AssessController extends Controller
 {
     private $assessmentService;
+    private $assessmentRepo;
+    private $userRepo;
+    private $assessmentQuestionsTagOrderRepos;
 
-    public function __construct()
+    public function __construct(AssessmentRepository $assessmentRepository)
     {
         $this->assessmentService = new AssessmentService();
+        $this->assessmentRepo = $assessmentRepository;
+        $this->userRepo = new UserRepository();
+        $this->assessmentQuestionsTagOrderRepos = new AssessmentQuestionsTagOrderRepository();
     }
 
     // show user individual tag score in percentage
@@ -36,7 +45,7 @@ class AssessController extends Controller
     public function getAssessmentQuestionsForUser($userId)
     {
         try {
-            $user = User::getUser($userId);
+            $user = $this->userRepo->getUser($userId);
             if ($user->assessmentRecord != null) {
                 if ($user->assessmentRecord->finish_state) {
                     $totalScore = $user->assessmentRecord->hasManyUserAssessmentAnswers->sum('score');
@@ -44,13 +53,13 @@ class AssessController extends Controller
                 } else {
                     // Sequence of Questions Tag Order user is following
                     $orderSeqId = $user->assessmentRecord->order_seq_id;
-                    $orderSeq = AssessmentQuestionsTagOrder::getRequestedIdOrderSequence($orderSeqId);
+                    $orderSeq = $this->assessmentQuestionsTagOrderRepos->getRequestedIdOrderSequence($orderSeqId);
                     $remainingQuestionTagIds = array_diff(explode(",", $orderSeq->order_seq), $user->assessmentRecord->tags_completed);
                     $nextTagId = array_first($remainingQuestionTagIds);
                     $questionsResponse = $this->assessmentService->getTagAssessmentQuestions($nextTagId, $orderSeqId);
                 }
             } else {
-                $orderSeq = AssessmentQuestionsTagOrder::getActiveOrderSequence();
+                $orderSeq = $this->assessmentQuestionsTagOrderRepos->getActiveOrderSequence();
                 $startTagId = explode(",", $orderSeq->order_seq)[0];
                 $questionsResponse = $this->assessmentService->getTagAssessmentQuestions($startTagId, $orderSeq->id);
             }

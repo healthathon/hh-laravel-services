@@ -68,17 +68,6 @@ class User extends Authenticatable
         }
     }
 
-    /**
-     * This function returns user profile image data
-     *
-     * @param $id : User ID
-     * @return mixed
-     */
-    public static function getUserProfileImageInformation($id)
-    {
-        return User::where('id', $id)->first(['profile_image_filename', 'profile_image_data']);
-    }
-
     public function taskInformation()
     {
         return $this->hasOne('App\Model\UsersTaskInformations', 'user_id', 'id');

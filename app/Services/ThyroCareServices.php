@@ -23,6 +23,7 @@ use App\Model\LabsTest;
 use App\Model\MMGBookingDetails;
 use App\Model\ThyrocareBeanDetails;
 use App\Model\ThyrocareUserData;
+use App\Respositories\DiagnosticLabInformationRepository;
 use App\Respositories\UserRepository;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -82,7 +83,7 @@ class ThyroCareServices
             Storage::disk('public')->put('thyrocare/offer.json', json_encode($data['MASTERS']['OFFER']));
             Storage::disk('public')->put('thyrocare/tests.json', json_encode($data['MASTERS']['TESTS']));
             Storage::disk('public')->put('thyrocare/profile.json', json_encode($data['MASTERS']['PROFILE']));
-            $diagnosticModel = DiagnosticLabInformation::where('id', 1)->first();
+            $diagnosticModel = (new DiagnosticLabInformationRepository())->where('id', 1)->first();
             $diagnosticModel->offer_data = $this->testsStoragePath . "/offer.json";
             $diagnosticModel->test_data = $this->testsStoragePath . "/tests.json";
             $diagnosticModel->profile_data = $this->testsStoragePath . "/profile.json";

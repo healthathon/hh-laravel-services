@@ -5,25 +5,22 @@ namespace App\Http\Controllers\Api;
 use App\Exceptions\UserNotFoundException;
 use App\Helpers;
 use App\Model\Feeds;
-use App\Model\Tasks\taskBank;
-use App\Model\Tasks\weeklyTask;
-use App\Model\User;
-use App\Model\UserFriends;
-use App\Model\UsersTaskInformations;
+use App\Respositories\FeedRepository;
 use App\Respositories\UserRepository;
+use App\Respositories\UsersTaskInformationRepository;
 use App\Services\FeedsService;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
 
 class FeedsController extends Controller
 {
 
-    private $feedsService, $userRepo;
+    private $feedsService, $userRepo,$feedRepo;
 
     public function __construct()
     {
         $this->feedsService = new FeedsService();
         $this->userRepo = new UserRepository();
+        $this->feedRepo = new FeedRepository();
     }
 
     public function addUsersFeeds($user_id, $day, $week_number, $taskBankId)
@@ -49,7 +46,7 @@ class FeedsController extends Controller
 
             $fridnIdString = implode(",",$friendsId);
 //            dd($fridnIdString);
-            $UsersTaskInformations = UsersTaskInformations::selectRaw("id,user_id,FIND_IN_SET( overall_score, ( SELECT GROUP_CONCAT( overall_score ORDER BY overall_score DESC ) FROM users_task_informations WHERE user_id IN(".$fridnIdString.")) ) AS rank")->whereIn("user_id",array_merge([$userId],$friendsId))->get();
+            $UsersTaskInformations = (new UsersTaskInformationRepository())->selectRaw("id,user_id,FIND_IN_SET( overall_score, ( SELECT GROUP_CONCAT( overall_score ORDER BY overall_score DESC ) FROM users_task_informations WHERE user_id IN(".$fridnIdString.")) ) AS rank")->whereIn("user_id",array_merge([$userId],$friendsId))->get();
 
             $userRank = [];
             foreach ($UsersTaskInformations as $uInfo){
@@ -58,7 +55,7 @@ class FeedsController extends Controller
 
 //            dd($UsersTaskInformations->toArray());
 
-            $feeds = Feeds::whereIn('user_id', $friendsId)->orderBy('user_id', 'desc')->get();
+            $feeds = $this->feedRepo->whereIn('user_id', $friendsId)->orderBy('user_id', 'desc')->get();
             $response = array();
             foreach ($feeds as $feed) {
                 $response[] = [

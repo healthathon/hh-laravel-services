@@ -6,6 +6,8 @@ use App\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\BmiScore;
 use App\Model\LabsTest;
+use App\Respositories\BmiScoreRepository;
+use App\Respositories\LabRepository;
 use App\Services\AssessmentService;
 use App\Services\BMIService;
 use Illuminate\Http\Request;
@@ -14,12 +16,13 @@ use Illuminate\Support\Facades\Validator;
 
 class BMIController extends Controller
 {
-    private $bmiServiceObj, $assessmentService;
+    private $bmiServiceObj, $assessmentService, $bmiScoreRepo;
 
     public function __construct(BMIService $bmiServiceObj)
     {
         $this->bmiServiceObj = $bmiServiceObj;
         $this->assessmentService = new AssessmentService();
+        $this->bmiScoreRepo = new BmiScoreRepository();
     }
 
     public function testRecommendationPage()
@@ -49,11 +52,11 @@ class BMIController extends Controller
 
     public function updateTestRecommendationPage($bmiId)
     {
-        $bmiObj = BmiScore::where("id", $bmiId)->first();
+        $bmiObj = $this->bmiScoreRepo->where("id", $bmiId)->first();
         // RecommendedTest : Test recommend to corresponding answers
         $recommendIds = $bmiObj->recommend_test;
         $recommendedIds = $recommendIds == null ? [] : array_column($recommendIds->toArray(), 'test_id');
-        $labTests = LabsTest::all();
+        $labTests = (new LabRepository())->all();
         return view('admin.bmi.modifyRecommendTest', compact('bmiObj',
             'labTests', 'recommendedIds'));
     }
@@ -75,7 +78,7 @@ class BMIController extends Controller
         DB::beginTransaction();
         try {
             DB::transaction(function () use ($bmiRefId, $newRecommendedTest) {
-                $bmiObject = BmiScore::where("id", $bmiRefId)->first();
+                $bmiObject = $this->bmiScoreRepo->where("id", $bmiRefId)->first();
                 $bmiObject->recommend_test()->delete();
                 $bmiObject->recommend_test()->insert($newRecommendedTest);
             });

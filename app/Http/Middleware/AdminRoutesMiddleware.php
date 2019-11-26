@@ -1,5 +1,5 @@
 <?php
-
+// @author JEET DUMS
 namespace App\Http\Middleware;
 
 use Closure;
@@ -15,6 +15,13 @@ class AdminRoutesMiddleware
      */
     public function handle($request, Closure $next)
     {
-        return $next($request);
+
+
+        if (auth()->guard('admin')->guest())
+        {
+            return redirect()->route('admin.loginForm');
+        }else {
+            return $next($request);
+        }
     }
 }

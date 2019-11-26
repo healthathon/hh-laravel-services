@@ -10,6 +10,7 @@ namespace App\Services;
 
 
 use App\Model\Feeds;
+use App\Respositories\FeedRepository;
 use App\Respositories\WeeklyTaskRepository;
 
 class FeedsService
@@ -26,7 +27,7 @@ class FeedsService
         $weekTaskObj = $this->weekTaskRepo->getWeekTaskObject($taskBankId, $week_number);
         $feeds = null;
         $dayImageColumn = "day$day" . "_badge";
-        $feeds = Feeds::updateOrCreate([
+        $feeds = (new FeedRepository())->updateOrCreate([
             'user_id' => $user_id, 'week' => $week_number, 'day' => $day, 'task' => $taskBankId
         ], [
             'badge' => $weekTaskObj->$dayImageColumn

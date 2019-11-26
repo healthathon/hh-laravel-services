@@ -37,22 +37,6 @@ class Feeds extends Model
         "updated_at"
     ];
 
-    /**
-     * Avoid adding duplicate entry into feeds table
-     *
-     * @param $user_id : User Identification Number
-     * @param $week_number : Week Number of Task Completion
-     * @param $task_number :  Id of Task Completed by User
-     * @return bool: Returns whether such entry exists
-     */
-    public static function checkEntryExists($user_id, $week_number, $task_number)
-    {
-        $recordCount = Feeds::where('user_id', $user_id)->where('week', $week_number)->where('task', $task_number)->count();
-        if ($recordCount != 0)
-            return true;
-        else
-            return false;
-    }
 
     /**
      * This function holds a relationship with task in order to get task information from id

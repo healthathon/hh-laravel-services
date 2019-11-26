@@ -6,6 +6,7 @@ use App\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\User;
 use App\Model\UsersTaskInformations;
+use App\Respositories\UserRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ class LeaderBoardController extends Controller
         try {
             $taskColumnToFetch = "taskInformation:user_id,overall_score,physical_task_completed," .
                 "mental_task_completed,nutrition_task_completed,lifestyle_task_completed";
-            $users = User::with($taskColumnToFetch)
+            $users = (new UserRepository())->with($taskColumnToFetch)
                 ->limit(20)
                 ->get(['id', 'first_name', 'last_name'])
                 ->sortByDesc('taskInformation.overall_score');

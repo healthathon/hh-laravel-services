@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Helpers;
-use App\Model\MixedBagUserHistory;
+use App\Respositories\MixedBagUserHistoryRepository;
 use App\Services\MixedBagService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -17,11 +17,12 @@ use App\Http\Controllers\Controller;
 class MixedBagController extends Controller
 {
 
-    private $mixedBagService;
+    private $mixedBagService,$MixedBagUserHistoryRepo;
 
     public function __construct()
     {
         $this->mixedBagService = new MixedBagService();
+        $this->MixedBagUserHistoryRepo = new MixedBagUserHistoryRepository();
     }
 
     // Register Task of User
@@ -33,7 +34,7 @@ class MixedBagController extends Controller
     // Initialize User Object with Mixed Bag
     public function taskComplete(Request $request)
     {
-        $userMbObject = MixedBagUserHistory::getUserMbObject($request->userId, $request->taskId);
+        $userMbObject = $this->MixedBagUserHistoryRepo->getUserMbObject($request->userId, $request->taskId);
         if (is_null($userMbObject))
             return Helpers::getResponse(404, "User not doing this regimen");
         return $this->mixedBagService->updateUserMixedBagRegimenObject($userMbObject);
@@ -42,7 +43,7 @@ class MixedBagController extends Controller
     //Reset Mixed Bag Task for user
     public function resetMixedBagRegimen(Request $request)
     {
-        $userMbObject = MixedBagUserHistory::getUserMbObject($request->userId, $request->taskId);
+        $userMbObject = $this->MixedBagUserHistoryRepo->getUserMbObject($request->userId, $request->taskId);
         if (is_null($userMbObject))
             return Helpers::getResponse(404, "User not doing this regimen");
         return $this->mixedBagService->resetUserRegimen($userMbObject);
@@ -55,7 +56,7 @@ class MixedBagController extends Controller
     public function unregisterMixedTask(Request $request)
     {
         try {
-            $userMbObject = MixedBagUserHistory::removeUser($request->userId, $request->taskId);
+            $userMbObject = $this->MixedBagUserHistoryRepo->removeUser($request->userId, $request->taskId);
             if ($userMbObject)
                 return Helpers::getResponse(200, "User removed from regimen");
         } catch (\Exception $e) {

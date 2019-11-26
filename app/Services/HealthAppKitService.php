@@ -9,16 +9,18 @@
 namespace App\Services;
 
 use App\Model\HealthAppKit;
+use App\Respositories\HealthAppKitRepository;
 use Illuminate\Support\Facades\Log;
 
 class HealthAppKitService
 {
-    private $user_id, $responseArr;
+    private $user_id, $responseArr, $healthAppKitRepo;
 
     public function __construct()
     {
         $this->user_id = -1;
         $this->responseArr = array();
+        $this->healthAppKitRepo = new HealthAppKitRepository();
     }
 
     /**
@@ -77,11 +79,11 @@ class HealthAppKitService
         $columnValue = "Sleep";
         $columnValueDate = "sleep_date";
         Log::info(" Column Value Date Column " . $columnValueDate);
-        $healthAppUser = HealthAppKit::where('user_id', $this->user_id)
+        $healthAppUser = $this->healthAppKitRepo->where('user_id', $this->user_id)
             ->whereDate('created_at', '=', $localDate)->first();
         if (!$healthAppUser) {
             Log::debug(" Creating New Value for Sleep");
-            $healthAppUser = HealthAppKit::create([
+            $healthAppUser = $this->healthAppKitRepo->create([
                 'user_id' => $this->user_id,
                 'sleep' => $value,
                 'start_date' => $startdate,
@@ -138,11 +140,11 @@ class HealthAppKitService
         $localDate = date("Y-m-d", strtotime($date));
         $columnValueDate = $columnValue . "_date";
         Log::info(" Column Value Date Column " . $columnValueDate);
-        $healthAppUser = HealthAppKit::where('user_id', $this->user_id)
+        $healthAppUser = $this->healthAppKitRepo->where('user_id', $this->user_id)
             ->whereDate('created_at', '=', $localDate)->first();
         if (!$healthAppUser) {
             Log::debug(" Creating New Value for $columnValue");
-            $healthAppUser = HealthAppKit::create([
+            $healthAppUser = $this->healthAppKitRepo->create([
                 'user_id' => $this->user_id,
                 $columnValue => $value,
                 $columnValueDate => $date,

@@ -7,6 +7,8 @@ use App\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\ShortHealthAssessment;
 use App\Model\User;
+use App\Respositories\ShortHealthAssessmentRepository;
+use App\Respositories\UserRepository;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -14,16 +16,17 @@ use Illuminate\Support\Facades\Validator;
 class ShortHealthAssessmentController extends Controller
 {
 
-    private $userService;
+    private $userService, $ShortHealthAssessmentRepo;
 
     public function __construct()
     {
         $this->userService = new UserService();
+        $this->ShortHealthAssessmentRepo = new ShortHealthAssessmentRepository();
     }
 
     public function getQuestions()
     {
-        $shortQuestions = ShortHealthAssessment::with('answers:id,question_id,answer')->get();
+        $shortQuestions = $this->ShortHealthAssessmentRepo->with('answers:id,question_id,answer')->get();
         return Helpers::getResponse(200, "SHA Questions", $shortQuestions);
     }
 
@@ -49,9 +52,12 @@ class ShortHealthAssessmentController extends Controller
     public function getAboutUserShortHealthHistory($id)
     {
         try {
-            $user = User::getUser($id, ['id', 'first_name', 'last_name']);
-            $shortQuestions = ShortHealthAssessment::with('answers:id,question_id,answer')->get();
+            $user = (new UserRepository())->getUser($id, ['id', 'first_name', 'last_name']);
+            $shortQuestions = $this->ShortHealthAssessmentRepo->with('answers:id,question_id,answer')->get();
             $userSHAData = $user->getShortHealthData()->get();
+            
+            //return $userSHAData;
+
             if (count($userSHAData) > 0)
                 $user["sha"] = $this->userHaveSHA($userSHAData, $shortQuestions);
             else
@@ -63,7 +69,7 @@ class ShortHealthAssessmentController extends Controller
         }
     }
 
-    private function userHaveSHA(object $userSHAData, object $shortQuestions)
+    private function userHaveSHA($userSHAData, $shortQuestions)
     {
         $answersCollected = [];
         foreach ($userSHAData as $value) {

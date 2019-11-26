@@ -24,6 +24,7 @@ class UserNotFoundException extends Exception
      */
     public function setMessage($message): void
     {
+        dd("asdas");
         $this->message = $message;
     }
 

@@ -60,13 +60,13 @@
                                     <label>Password</label>
                                     <input type="password" class="form-control" placeholder="Password" name="password">
                                 </div>
-                                <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                    </div>
-                                    <div class="form-group col-md-6 text-right"><a href="javascript:void(0)">Forgot
-                                            Password?</a>
-                                    </div>
-                                </div>
+                                {{--<div class="form-row">--}}
+                                    {{--<div class="form-group col-md-6">--}}
+                                    {{--</div>--}}
+                                    {{--<div class="form-group col-md-6 text-right"><a href="javascript:void(0)">Forgot--}}
+                                            {{--Password?</a>--}}
+                                    {{--</div>--}}
+                                {{--</div>--}}
                                 <div class="text-center mb-4 mt-4">
                                     <button type="submit" class="btn btn-primary">Sign in</button>
                                 </div>

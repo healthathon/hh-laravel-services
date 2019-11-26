@@ -38,6 +38,7 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
+
         $validator = Validator::make($request->all(), [
             'type' => 'required'
         ]);
@@ -54,7 +55,7 @@ class UserController extends Controller
     private function socialLogin($request)
     {
         $socialId = $request->social_id;
-        $user = User::where('social_id', $socialId)->first(['id', 'first_name', 'last_name', 'email']);
+        $user = $this->userRepo->where('social_id', $socialId)->first(['id', 'first_name', 'last_name', 'email']);
         if ($user == null)
             return ['status' => false];
         // added device token for mobile notification       :: JEET DUMS - 20-04-2019
@@ -72,10 +73,10 @@ class UserController extends Controller
     private function updateUserDeviceToken($deviceToken, $userId)
     {
         if (isset($deviceToken) && !empty($deviceToken)) {
-            User::where("device_token", $deviceToken)->update([
+            $this->userRepo->where("device_token", $deviceToken)->update([
                 "device_token" => ""
             ]);
-            User::whereId($userId)->update([
+            $this->userRepo->whereId($userId)->update([
                 "device_token" => $deviceToken
             ]);
         }
@@ -204,6 +205,7 @@ class UserController extends Controller
         try {
             $response = [];
             $user = $this->userRepo->getUser($userId);
+
             $response["about"] = [
                 "id" => $user->id,
                 "name" => $user->name,
@@ -270,12 +272,15 @@ class UserController extends Controller
      */
     public function updateProfile(Request $request)
     {
+
         $validate = Validator::make($request->all(), [
             "user_id" => "required",
             'contact_no' => 'unique:users'
         ], [
             'contact_no.unique' => 'Please enter unique contact number',
         ]);
+
+
         if ($validate->fails()) {
             $message = $validate->getMessageBag()->first();
             return Helpers::getResponse(406, $message);
@@ -350,7 +355,7 @@ class UserController extends Controller
      */
     public function getUserProfileImage($userId)
     {
-        $user = User::getUserProfileImageInformation($userId);
+        $user = $this->userRepo->getUserProfileImageInformation($userId);
         if (is_null($user))
             return response()->make("")->header('Content-Type', $this->mapImageFromExt($user->profile_image_filename));
         return response()->make($user->profile_image_data)->header('Content-Type', $this->mapImageFromExt($user->profile_image_filename));

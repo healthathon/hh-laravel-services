@@ -72,6 +72,9 @@ class ResetUserTaskUpdates extends Command
                     $predicted_week_number = (int)($dateDifference->days / 7) + 1;
                     $predicted_today = $day;
 
+                    $response[$userTaskDetails->id]['predicted_week_number'] = $predicted_week_number;
+                    $response[$userTaskDetails->id]['predicted_today'] = $predicted_today;
+
                     if ($predicted_week_number > 1) {
 
                         $response[$userTaskDetails->id]['date'] = date("Y-m-d H:i:s");
@@ -116,10 +119,27 @@ class ResetUserTaskUpdates extends Command
 
                         $response[$userTaskDetails->id]['start_date'] = $start_date;
 
-                    } else {
-
-                        if ($predicted_today == 7) {
+                    }
+                    else {
+                        $DeviceToken = $userTaskDetails->getDeviceToken();
+                        if ($predicted_today == 7 && $DeviceToken!='' && $DeviceToken!=null) {
                             // need to send notification here to user
+
+                            $data = [
+                                'title' =>  'To stop loosing progress complete a task today.',
+                                'body'  =>  'Your Progress for the week will be reset tomorrow as you have not completed 75% tasks for the week',
+                                'sid'   =>  $userTaskDetails->user_id,
+                                'rid'   =>  $userTaskDetails->user_id,
+                                'token' =>  $DeviceToken
+                            ];
+
+                            if(env('MODE') == "live") {
+                                Helpers::CallAPI("POST", "http://chatmoduleproduction.yyymtsejkw.us-east-2.elasticbeanstalk.com/notification", $data);
+                            }else{
+                                Helpers::CallAPI("POST","http://localhost:8081/notification",$data);
+                            }
+
+                            $response[$userTaskDetails->id]['notification'] = $data;
                         }
 
                     }

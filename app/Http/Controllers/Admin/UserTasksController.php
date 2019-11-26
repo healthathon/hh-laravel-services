@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Model\Tasks\taskBank;
 use App\Model\User;
 use App\Model\UserTask;
+use App\Respositories\TaskBankRepository;
+use App\Respositories\UserRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -18,7 +20,7 @@ class UserTasksController extends Controller
 
     public function getUsersTasks()
     {
-        $users = User::all();
+        $users = (new UserRepository())->all();
         $responseArr = [];
         $i = 0;
         foreach ($users as $user) {
@@ -51,7 +53,7 @@ class UserTasksController extends Controller
 
     private function getTaskNameFromId($id)
     {
-        $task = taskBank::where('id', $id)->first();
+        $task = (new TaskBankRepository())->where('id', $id)->first();
         return $task->task_name;
     }
 }

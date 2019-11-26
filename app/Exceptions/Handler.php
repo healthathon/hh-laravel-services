@@ -47,14 +47,30 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+//        dd($exception->getMessage());
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'statusCode' => 500,
+                'statusMessage' => $exception->getFile().":".$exception->getLine()." ".$exception->getMessage(),
+            ]);
+        }
+
         return parent::render($request, $exception);
     }
 
     protected function unauthenticated($request, AuthenticationException $exception)
     {
-        if ($request->expectsJson()) {
-            return response()->json(['error' => 'Unauthenticated.'],401);
+        //dd($request->route()->getPrefix());
+
+        if ($request->expectsJson() ||  strpos($request->route()->getPrefix(), "api") !== false) {
+            return response()->json([
+                'statusCode' => 401,
+                'statusMessage' => "Unauthenticated.",
+            ]);
+//            return response()->json(['error' => 'Unauthenticated.'],401);
         }
+
         $guard = array_get($exception->guards(), 0);
         switch ($guard) {
             case 'admin': $login = 'admin.login';

@@ -25,31 +25,6 @@ class taskBank extends Model
         'updated_at'
     ];
 
-    static function getTaskName($taskId)
-    {
-        $taskObject = taskBank::find($taskId);
-        // Handle Null case later on
-        return $taskObject != null ? $taskObject->task_name : "null";
-    }
-
-    static function getTaskBankObject($taskId)
-    {
-        return taskBank::where('id', $taskId)->first();
-    }
-
-    //data = Array
-    public static function updateTaskBank($id, $data)
-    {
-        $updateResponse = taskBank::where('id', $id)->update($data);
-        return $updateResponse;
-    }
-
-    public static function deleteTaskBank($id)
-    {
-        $deleteResponse = taskBank::where('id', $id)->delete();
-        return $deleteResponse;
-    }
-
     function hasWeeklyTasks()
     {
         return $this->hasMany('App\Model\Tasks\weeklyTask', 'taskBank_id', 'code');

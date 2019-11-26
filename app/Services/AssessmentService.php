@@ -15,7 +15,13 @@ use App\Model\LongAssessUserLevelRestriction;
 use App\Model\TaskCorrespondingAssessmentAnswers;
 use App\Model\Tasks\taskBank;
 use App\Model\User;
+use App\Respositories\AssessmentHistoryRepository;
 use App\Respositories\AssessmentRepository;
+use App\Respositories\QueryRepository;
+use App\Respositories\QueryTagRepository;
+use App\Respositories\TaskBankRepository;
+use App\Respositories\TaskCorrespondingAssessmentAnswersRepository;
+use App\Respositories\UserRepository;
 use App\Services\Interfaces\IAssessmentService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +31,7 @@ use Illuminate\Support\Facades\Storage;
 class AssessmentService implements IAssessmentService
 {
 
-    private $assessmentRepo, $labService, $questionService, $nutritionScoreBankService;
+    private $assessmentRepo, $labService, $questionService, $nutritionScoreBankService, $queryTagRepo, $userRepo;
 
     public function __construct()
     {
@@ -33,6 +39,8 @@ class AssessmentService implements IAssessmentService
         $this->labService = new LabService();
         $this->questionService = new QuestionService();
         $this->nutritionScoreBankService = new NutritionScoreBankService();
+        $this->queryTagRepo = new QueryTagRepository();
+        $this->userRepo = new UserRepository();
     }
 
     public function fetchAllAssessAnswers()
@@ -60,7 +68,7 @@ class AssessmentService implements IAssessmentService
 
     public function mapTaskNameWithIds($commaSeparatedTestId)
     {
-        $regimenNameArr = taskBank::whereIn('id', $commaSeparatedTestId)->pluck('task_name');
+        $regimenNameArr = (new TaskBankRepository())->whereIn('id', $commaSeparatedTestId)->pluck('task_name');
         return array_unique($regimenNameArr->toArray());
     }
 
@@ -73,8 +81,8 @@ class AssessmentService implements IAssessmentService
 
     public function getTagAssessmentQuestions($tagId, $orderSeqId)
     {
-        $tagName = queryTag::getTagNameFromCache($tagId);
-        $setOfQuestions = Query::getRequestedTagIdQuestions($tagId);
+        $tagName = $this->queryTagRepo->getTagNameFromCache($tagId);
+        $setOfQuestions = (new QueryRepository())->getRequestedTagIdQuestions($tagId);
         $finalResponseToSent = [
             'tag' => $tagName === "Emotional Well Being" ? "Mental Well-Being" : $tagName,
             'order_seq' => $orderSeqId,
@@ -90,9 +98,9 @@ class AssessmentService implements IAssessmentService
      */
     public function getUserAssessResults($userId)
     {
-        User::getUser($userId);        // will throw an exception if user not found
+        $this->userRepo->getUser($userId);        // will throw an exception if user not found
         $tagsIdArray = array();
-        $userHistory = assesHistory::where('user_id', $userId)->first();
+        $userHistory = (new AssessmentHistoryRepository())->where('user_id', $userId)->first();
         if (!$userHistory)
             return Helpers::getResponse(404, "No Assessment Result");
         $userHistory = $userHistory->toArray();
@@ -120,7 +128,7 @@ class AssessmentService implements IAssessmentService
         foreach ($tagsIdArray as $tagId) {
             $scoreColumn = "tag" . $tagId . "_score";
             $tagStateColumn = "tag" . $tagId . "_state";
-            $queryInfo = queryTag::where('id', $tagId)->first();
+            $queryInfo = $this->queryTagRepo->where('id', $tagId)->first();
             $score = $userHistory[$scoreColumn];
             // HardCoded [Emotional Well Being - make thing dynamic from DB] - Please Resolve this bad practices. (MJ)
             $tagName = ucwords(strtolower($queryInfo->tag_name === "Emotional Well Being" ? "Mental Well-Being" : $queryInfo->tag_name));
@@ -153,7 +161,7 @@ class AssessmentService implements IAssessmentService
 
     public function getTagState($tagId, $score)
     {
-        $tagInfo = queryTag::where('id', $tagId)->first();
+        $tagInfo = $this->queryTagRepo->where('id', $tagId)->first();
         if ($tagInfo->excellent_marks != null) {
             if ($score == $tagInfo->excellent_marks) {
                 return Constants::EXCELLENT;
@@ -179,7 +187,7 @@ class AssessmentService implements IAssessmentService
      */
     public function resetUserAssessResults($userId)
     {
-        $user = User::getUser($userId, ['id', 'first_name']);
+        $user = $this->userRepo->getUser($userId, ['id', 'first_name']);
         if ($user->assessmentRecord == null)
             return Helpers::getResponse(404, Constants::ASSESSMENT_NOT_YET_STARTED);
         try {
@@ -228,8 +236,8 @@ class AssessmentService implements IAssessmentService
 
     private function resetUserAssessDataApartFromHistoryScore($assessmentRecord)
     {
-        $allTags = queryTag::all();
-        $historyTagId = queryTag::where("tag_name", ucfirst("history"))->first()->id;
+        $allTags = $this->queryTagRepo->all();
+        $historyTagId = $this->queryTagRepo->where("tag_name", ucfirst("history"))->first()->id;
         $assessmentRecord->tags_completed = [$historyTagId];
         foreach ($allTags as $tag) {
             // HardCoded - Bad Coding
@@ -258,7 +266,7 @@ class AssessmentService implements IAssessmentService
      */
     public function recordUserTagQuestionsAnswers($userId, $tagId, $answers, $orderSeq)
     {
-        $user = User::getUser($userId);
+        $user = $this->userRepo->getUser($userId);
         if (!empty($user->assessmentRecord))
             $this->hasUserAlreadyAnsweredThisTagQuestion($tagId, $user);
         else {
@@ -280,12 +288,13 @@ class AssessmentService implements IAssessmentService
                 'score' => $answer['score']
             ];
             // Very Costly Query Operation  (Handle it)
-            $restrictedLevel = AssessmentAnswers::where("answer", trim($answer["answer_text"]))
+            $restrictedValue = (new AssessmentRepository())->where("answer", trim($answer["answer_text"]))
                 ->where("query_id", $answer['query_id'])
-                ->first()
-                ->restricted_level;
-            if (!is_null($restrictedLevel))
+                ->first();
+            if (!empty($restrictedValue)) {
+                $restrictedLevel = $restrictedValue->restricted_level;
                 array_push($restrictionLevelCollector, $restrictedLevel);
+            }
             if (!$this->isMentalTag($tagId) || ($this->isMentalTag($tagId) && !$this->isMentalBank($answer["query_id"]))) {
                 $newTaskArr = $this->fetchRecommendedTaskIdsFromUserAnswer($user->id, $answer['query_id'], $answer['answer_text']);
                 if (count($newTaskArr) > 0) {
@@ -380,7 +389,7 @@ class AssessmentService implements IAssessmentService
     private function isMentalTag(int $tagId)
     {
         // TODO: HardCoded - Wrong Practice
-        return queryTag::getTagName($tagId) === "Mental Well-Being";
+        return $this->queryTagRepo->getTagName($tagId) === "Mental Well-Being";
     }
 
     private function isMentalBank(int $queryId)
@@ -403,11 +412,12 @@ class AssessmentService implements IAssessmentService
     private function fetchRecommendedTaskIdsFromUserAnswer($userId, $queryId, $answer)
     {
         $response = [];
-        $queryObject = AssessmentAnswers::where('query_id', $queryId)
+        $queryObject = (new AssessmentRepository())->where('query_id', $queryId)
             ->where('answer', trim($answer))->first();
         $recommendedTaskIds = [];
-        if ($queryObject->recommend_regimen !== null)
+        if (!empty($queryObject) && $queryObject->recommend_regimen !== null) {
             $recommendedTaskIds = array_column($queryObject->recommend_regimen->toArray(), 'recommended_regimen');
+        }
         if (count($recommendedTaskIds) > 0) {
             foreach ($recommendedTaskIds as $taskId) {
                 if ($taskId != 0) {
@@ -424,11 +434,12 @@ class AssessmentService implements IAssessmentService
     private function fetchRecommendedTestIdsFromUserAnswer($userId, $queryId, $answer)
     {
         $response = [];
-        $queryObject = AssessmentAnswers::where('query_id', $queryId)
+        $queryObject = (new AssessmentRepository())->where('query_id', $queryId)
             ->where('answer', trim($answer))->first();
         $recommendedTestIds = [];
-        if ($queryObject->recommend_test !== null)
+        if (!empty($queryObject) && $queryObject->recommend_test !== null) {
             $recommendedTestIds = array_column($queryObject->recommend_test->toArray(), 'recommended_test');
+        }
         if (count($recommendedTestIds) > 0) {
             foreach ($recommendedTestIds as $taskId) {
                 if ($taskId != 0) {
@@ -445,13 +456,13 @@ class AssessmentService implements IAssessmentService
     private function isNutritionTag(int $tagId)
     {
         // TODO: HardCoded - Wrong Practice
-        return queryTag::getTagName($tagId) === "Nutrition";
+        return $this->queryTagRepo->getTagName($tagId) === "Nutrition";
     }
 
     private function isAssessmentCompletedByUser($userAssessObject)
     {
         $completedTagId = $userAssessObject->tags_completed;
-        $totalQuestionTags = queryTag::where("tag_name", "<>", "BMI")->get()->count();
+        $totalQuestionTags = $this->queryTagRepo->where("tag_name", "<>", "BMI")->get()->count();
         return count($completedTagId) == ($totalQuestionTags);
     }
 
@@ -475,7 +486,7 @@ class AssessmentService implements IAssessmentService
                 'recommended_regimen' => $regimenId
             ];
         }
-        $previousRecommendation = TaskCorrespondingAssessmentAnswers::where('answer_id', $answerId);
+        $previousRecommendation = (new TaskCorrespondingAssessmentAnswersRepository())->where('answer_id', $answerId);
         if (count($previousRecommendation->get()) > 0) {
             $previousRecommendation->delete();
         }
@@ -484,7 +495,7 @@ class AssessmentService implements IAssessmentService
 
     private function updateTaskRecommendation($newRecommendedRegimen)
     {
-        TaskCorrespondingAssessmentAnswers::insert($newRecommendedRegimen);
+        (new TaskCorrespondingAssessmentAnswersRepository())->insert($newRecommendedRegimen);
         return response()->json([
             'status' => true,
             'message' => "Updated"

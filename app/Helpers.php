@@ -11,6 +11,7 @@ namespace App;
 
 use Carbon\Carbon;
 use DateTime;
+use GuzzleHttp\Client;
 
 /**
  * Class Helpers
@@ -49,5 +50,22 @@ class Helpers
     public static function sendResponse(array $body)
     {
         return response()->json($body);
+    }
+
+
+    public static function CallAPI($method,$url,$data=[],$headers = []){
+
+
+        $body = [];
+        $body['form_params'] = $data;
+        $body['headers'] = $headers;
+
+        $client = new Client();
+        $response = $client->request($method, $url,$body);
+
+        return [
+            'status'    =>  $response->getStatusCode(),
+            'body'  =>  json_decode($response->getBody())
+        ];
     }
 }

@@ -13,22 +13,26 @@ Route::get('/', function () {
 
 Route::get('/cronjob/log', function () {
 
-    $path = public_path('reset_job_log.txt');
+//    $path = public_path('reset_job_log.txt');
+//
+//    if(file_exists($path)) {
+//        echo file_get_contents($path);
+//        die();
+//    }else{
+//        echo "Log not available";die();
+//    }
 
-    if(file_exists($path)) {
-        echo file_get_contents($path);
-        die();
-    }else{
-        echo "Log not available";die();
-    }
+    return \App\Helpers::CallAPI("GET","https://api.github.com/repos/guzzle/guzzle");
 });
-
-
-Route::group(['prefix' => 'admin', 'namespace' => 'Admin', 'as' => 'admin.'], function () {
-
-    // Auth Routes
+Route::group(['prefix' => 'admin', 'namespace' => 'Admin', 'as' => 'admin.'],function () {
+// Auth Routes
     Route::get('/login', 'Auth\LoginController@showLoginForm')->name("loginForm");
     Route::post('/login', 'Auth\LoginController@login')->name('login.submit');
+});
+
+Route::group(['prefix' => 'admin', 'namespace' => 'Admin', 'as' => 'admin.','middleware'=>'Admin'], function () {
+
+
     Route::get('/logout', 'Auth\LoginController@logout')->name('logout');
 
     // Home Route

@@ -14,25 +14,6 @@ class assesHistory extends Model
         'tags_completed' => 'array'
     ];
 
-    // Returns Tag State ( Good,Bad,Excellent)
-    public static function getUserTagState($tagName, $user)
-    {
-        switch ($tagName) {
-            case "physics":
-                $tagName = "Physical Fitness";
-                break;
-            case "mental":
-                $tagName = "Emotional Well Being";
-                break;
-            default:
-                break;
-        }
-        $id = queryTag::getTagId($tagName);
-        $columnName = "tag" . $id . "_state";
-        // return tagX_state value of user
-        return $user->assessmentRecord == null ? null : $user->assessmentRecord->$columnName;
-    }
-
     public function user()
     {
         return $this->belongsTo('App\Model\User', 'user_id', 'id');

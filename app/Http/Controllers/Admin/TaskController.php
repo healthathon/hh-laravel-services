@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Respositories\TaskBankRepository;
+use App\Respositories\WeeklyTaskRepository;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Model\Tasks\taskBank;
@@ -23,6 +25,14 @@ define('LIFESTYLE_ID', 4);
  */
 class TaskController extends Controller
 {
+    protected $taskBankRepo, $weeklyTaskRepo;
+
+    public function __construct()
+    {
+        $this->taskBankRepo = new TaskBankRepository();
+        $this->weeklyTaskRepo = new WeeklyTaskRepository();
+    }
+
     public function showPhysicsBank()
     {
         return view('admin.tasks.__taskBank.physicsBank');
@@ -30,7 +40,7 @@ class TaskController extends Controller
 
     public function getPhysicsBank()
     {
-        $taskBanks = taskBank::where('category', PHYSICS_ID)->get();
+        $taskBanks = $this->taskBankRepo->where('category', PHYSICS_ID)->get();
         $result = Array();
         $i = 0;
         foreach ($taskBanks as $taskBank) {
@@ -39,9 +49,7 @@ class TaskController extends Controller
             $result[$i]['level'] = (int)$taskBank->level;
             $result[$i]['step'] = (int)$taskBank->step;
             $result[$i]['view_badge'] = url("admin/regimen/$taskBank->id/image");
-            $result[$i]['regimen_badge'] = " <input type = 'file' name = 'image'
-            onchange = 'showContent(this, $taskBank->id)'
-            accept = 'image/*' />";
+            $result[$i]['regimen_badge'] = " <input type = 'file' name = 'image' onchange = 'showContent(this, $taskBank->id)' accept = 'image/*' />";
             $result[$i]['detail'] = $taskBank->detail;
             $result[$i]['title'] = $taskBank->title;
             $i++;
@@ -77,7 +85,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskBank = taskBank::find($id);
+        $taskBank = $this->taskBankRepo->find($id);
         $taskBank->task_name = $item['task_name'];
         $taskBank->level = $item['level'];
         $taskBank->step = $item['step'];
@@ -98,7 +106,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskBank = taskBank::find($id);
+        $taskBank = $this->taskBankRepo->find($id);
         $taskBank->task_name = $item['task_name'];
         $taskBank->level = $item['level'];
         $taskBank->step = $item['step'];
@@ -119,7 +127,7 @@ class TaskController extends Controller
 
     public function getMentalBank()
     {
-        $taskBanks = taskBank::where('category', MENTAL_ID)->get();
+        $taskBanks = $this->taskBankRepo->where('category', MENTAL_ID)->get();
         $result = Array();
         $i = 0;
         foreach ($taskBanks as $taskBank) {
@@ -164,7 +172,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskBank = taskBank::find($id);
+        $taskBank = $this->taskBankRepo->find($id);
         $taskBank->task_name = $item['task_name'];
         $taskBank->level = $item['level'];
 //                        $taskBank->detail=$item['detail'];
@@ -184,7 +192,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskBank = taskBank::find($id);
+        $taskBank = $this->taskBankRepo->find($id);
         $taskBank->delete();
     }
 
@@ -200,7 +208,7 @@ class TaskController extends Controller
 
     public function getLifestyleBank()
     {
-        $taskBanks = taskBank::where('category', LIFESTYLE_ID)->get();
+        $taskBanks = $this->taskBankRepo->where('category', LIFESTYLE_ID)->get();
         $result = Array();
         $i = 0;
         foreach ($taskBanks as $taskBank) {
@@ -238,7 +246,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskBank = taskBank::find($id);
+        $taskBank = $this->taskBankRepo->find($id);
         $taskBank->task_name = $item['task_name'];
 
         $taskBank->title = $item['title'];
@@ -254,7 +262,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskBank = taskBank::find($id);
+        $taskBank = $this->taskBankRepo->find($id);
         $taskBank->delete();
     }
 
@@ -270,16 +278,14 @@ class TaskController extends Controller
 
     public function getNutritionBank()
     {
-        $taskBanks = taskBank::where('category', NUTRITION_ID)->get();
+        $taskBanks = $this->taskBankRepo->where('category', NUTRITION_ID)->get();
         $result = Array();
         $i = 0;
         foreach ($taskBanks as $taskBank) {
             $result[$i]['ID'] = $taskBank->id;
             $result[$i]['task_name'] = $taskBank->task_name;
             $result[$i]['view_badge'] = url("admin/regimen/$taskBank->id/image");
-            $result[$i]['regimen_badge'] = " <input type = 'file' name = 'image'
-            onchange = 'showContent(this, $taskBank->id)'
-            accept = 'image/*' />";
+            $result[$i]['regimen_badge'] = " <input type = 'file' name = 'image' onchange = 'showContent(this, $taskBank->id)' accept = 'image/*' />";
             $result[$i]['title'] = $taskBank->title;
             $i++;
         }
@@ -307,7 +313,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskBank = taskBank::find($id);
+        $taskBank = $this->taskBankRepo->find($id);
         $taskBank->task_name = $item['task_name'];
 
         $taskBank->title = $item['title'];
@@ -323,7 +329,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskBank = taskBank::find($id);
+        $taskBank = $this->taskBankRepo->find($id);
         $taskBank->delete();
     }
 
@@ -384,7 +390,7 @@ class TaskController extends Controller
     {
         $taskBank_id = (int)$request->input('taskBank_id');
         $id = $request->input('ID');
-        $taskWeek = weeklyTask::find($id);
+        $taskWeek = $this->weeklyTaskRepo->find($id);
         $taskWeek->week = $request->input('week');
         $taskWeek->taskBank_id = $taskBank_id;
         $taskWeek->day1_title = $request->input('day1_title');
@@ -414,7 +420,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskWeek = weeklyTask::find($id);
+        $taskWeek = $this->weeklyTaskRepo->find($id);
         $taskWeek->delete();
     }
 
@@ -430,7 +436,7 @@ class TaskController extends Controller
 
     public function getMentalWeekTask($taskBank_id)
     {
-        $weekly_tasks = weeklyTask::where('taskBank_id', $taskBank_id)->orderBy('week')->get();
+        $weekly_tasks = $this->weeklyTaskRepo->where('taskBank_id', $taskBank_id)->orderBy('week')->get();
         $result = Array();
         $i = 0;
         foreach ($weekly_tasks as $weekly_task) {
@@ -503,7 +509,7 @@ class TaskController extends Controller
 
         $taskBank_id = (int)$request->input('taskBank_id');
         $id = $request->input('ID');
-        $taskWeek = weeklyTask::find($id);
+        $taskWeek = $this->weeklyTaskRepo->find($id);
         $taskWeek->week = $request->input('week');
         $taskWeek->taskBank_id = $taskBank_id;
 
@@ -549,7 +555,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskWeek = weeklyTask::find($id);
+        $taskWeek = $this->weeklyTaskRepo->find($id);
         $taskWeek->delete();
     }
 
@@ -565,7 +571,7 @@ class TaskController extends Controller
 
     public function getLifestyleWeekTask($taskBank_id)
     {
-        $weekly_tasks = weeklyTask::where('taskBank_id', $taskBank_id)->orderBy('week')->get();
+        $weekly_tasks = $this->weeklyTaskRepo->where('taskBank_id', $taskBank_id)->orderBy('week')->get();
         $result = Array();
         $i = 0;
         foreach ($weekly_tasks as $weekly_task) {
@@ -617,7 +623,7 @@ class TaskController extends Controller
         $taskBank_id = $request->input('taskBank_id');
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskWeek = weeklyTask::find($id);
+        $taskWeek = $this->weeklyTaskRepo->find($id);
         $taskWeek->week = $item['week'];
         $taskWeek->taskBank_id = $taskBank_id;
         $taskWeek->day1_title = $item['week_title'];
@@ -645,7 +651,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskWeek = weeklyTask::find($id);
+        $taskWeek = $this->weeklyTaskRepo->find($id);
         $taskWeek->delete();
     }
 
@@ -661,7 +667,7 @@ class TaskController extends Controller
 
     public function getNutritionWeekTask($taskBank_id)
     {
-        $weekly_tasks = weeklyTask::where('taskBank_id', $taskBank_id)->orderBy('week')->get();
+        $weekly_tasks = $this->weeklyTaskRepo->where('taskBank_id', $taskBank_id)->orderBy('week')->get();
         $result = Array();
         $i = 0;
         foreach ($weekly_tasks as $weekly_task) {
@@ -733,7 +739,7 @@ class TaskController extends Controller
     {
         $taskBank_id = (int)$request->input('taskBank_id');
         $id = $request->input('ID');
-        $taskWeek = weeklyTask::find($id);
+        $taskWeek = $this->weeklyTaskRepo->find($id);
         $taskWeek->week = $request->input('week');
         $taskWeek->taskBank_id = $taskBank_id;
 
@@ -779,7 +785,7 @@ class TaskController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $taskWeek = weeklyTask::find($id);
+        $taskWeek = $this->weeklyTaskRepo->find($id);
         $taskWeek->delete();
     }
 

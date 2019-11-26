@@ -13,6 +13,9 @@ use App\Helpers;
 use App\Model\Category;
 use App\Model\MixedBag;
 use App\Model\MixedBagUserHistory;
+use App\Respositories\CategoryRepository;
+use App\Respositories\MixedBagRepository;
+use App\Respositories\MixedBagUserHistoryRepository;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -23,10 +26,13 @@ use Illuminate\Support\Facades\Log;
  */
 class MixedBagService
 {
-    private $today, $this_week, $task_day;
+    private $today, $this_week, $task_day, $mixedBagUserHistoryRepo, $mixedBagRepo;
 
     public function __construct()
     {
+        $this->mixedBagUserHistoryRepo = new MixedBagUserHistoryRepository();
+        $this->mixedBagRepo = new MixedBagRepository();
+
         try {
             $date = new \DateTime('Asia/Kolkata');
             $this->today = $date->format('d-m-Y');
@@ -46,19 +52,19 @@ class MixedBagService
     {
         //TaskId = RegimenId for Mixed Bag
         $regimenId = $taskId;
-        if (MixedBagUserHistory::userDoingRegimen($userId, $regimenId))
+        if ($this->mixedBagUserHistoryRepo->userDoingRegimen($userId, $regimenId))
             return false;
         $mbHistory = new MixedBagUserHistory();
         $mbHistory->user_id = $userId;
         $mbHistory->regimen_id = $regimenId;
-        $mbHistory->category = MixedBag::getObject($regimenId)->mapper;
+        $mbHistory->category = $this->mixedBagRepo->getObject($regimenId)->mapper;
         $mbHistory->user_history = $this->initUserObject($regimenId);
         return $mbHistory->save();
     }
 
     public function unsubscribeUserFromMB($userId, $regimenId)
     {
-        return MixedBagUserHistory::where('user_id', $userId)
+        return $this->mixedBagUserHistoryRepo->where('user_id', $userId)
             ->where('regimen_id', $regimenId)
             ->delete();
     }
@@ -150,18 +156,18 @@ class MixedBagService
 
     public function getCategoryMixedBagTasks($userId, $category)
     {
-        $category = Category::getCategoryInfo($category);
+        $category = (new CategoryRepository())->getCategoryInfo($category);
         if (!$category)
             return Helpers::getResponse(400, "Category not found");
-        $task = MixedBag::where('mapper', '=', $category->id)->first();
-        $userTask = MixedBagUserHistory::getUserMbObject($userId, $task->id);
+        $task = $this->mixedBagRepo->where('mapper', '=', $category->id)->first();
+        $userTask = $this->mixedBagUserHistoryRepo->getUserMbObject($userId, $task->id);
         $weekHistory = null;
         $isUserTaskNotNull = false;
         if (!is_null($userTask)) {
             $isUserTaskNotNull = true;
             $weekHistory = json_decode($userTask->user_history);
         }
-        $doingTasksArr = MixedBagUserHistory::getUserDoingTasks($userId, $category->id);
+        $doingTasksArr = $this->mixedBagUserHistoryRepo->getUserDoingTasks($userId, $category->id);
         $responseArr = [
             'today' => $this->task_day,
             'Doing_Tasks' => $doingTasksArr,

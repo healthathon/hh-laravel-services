@@ -19,18 +19,4 @@ class weeklyTask extends Model
         'day7_title', 'day7_message', 'day7_badge',
         'image', 'week_detail', 'x', 'y', 'badge'
     ];
-
-    public static function getTaskTotalWeeks($task_id)
-    {
-        return weeklyTask::where('taskBank_id', $task_id)->count();
-    }
-
-    public static function getDayCompleteMessage($day, $weekNo, $taskBankId)
-    {
-        $column = "day" . $day . "_message";
-        $data = weeklyTask::where('week', $weekNo)
-            ->where('taskBank_id', $taskBankId)
-            ->first([$column]);
-        return $data->$column;
-    }
 }

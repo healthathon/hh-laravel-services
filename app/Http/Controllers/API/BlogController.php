@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers;
 use App\Model\Category;
+use App\Respositories\CategoryRepository;
 use App\Services\BlogService;
 use App\Http\Controllers\Controller;
 
@@ -14,10 +15,12 @@ use App\Http\Controllers\Controller;
 class BlogController extends Controller
 {
     private $blogService;
+    private $categoryRepo;
 
-    public function __construct()
+    public function __construct(CategoryRepository $categoryRepository)
     {
         $this->blogService = new BlogService();
+        $this->categoryRepo = $categoryRepository;
     }
 
     /**
@@ -37,7 +40,7 @@ class BlogController extends Controller
     public function getBlogCategories()
     {
         $categoryInfo = [];
-        $categories = Category::all();
+        $categories = $this->categoryRepo->all();
         foreach ($categories as $category) {
             $categoryInfo[] = [
                 'name' => $category->mapCategoryName($category->name),

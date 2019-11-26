@@ -35,23 +35,13 @@ class Category extends Model
     ];
 
     /**
-     * This function returns category id based on category name
-     * @param $categoryName :  The Name of Category
-     * @return mixed
-     */
-    public static function getCategoryInfo($categoryName)
-    {
-        return Category::where('name', ucfirst($categoryName))->first(['id', 'name']);
-    }
-
-    /**
      * This function is use to return the name of Category which is actually given in documents
      * @param $name : The name of Category
      *
      * @return string The proper name of Category
      */
     //but since previous developer made mistakes, refactoring entire code was not an option in respective of deadline
-    public static function mapCategoryName($name)
+    public function mapCategoryName($name)
     {
         switch (strtolower($name)) {
             case "physics":

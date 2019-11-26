@@ -6,11 +6,12 @@ namespace App\Respositories;
 use App\Model\Assess\queryTag;
 use App\Model\AssessmentAnswers;
 
-class AssessmentRepository
+class AssessmentRepository extends BaseRepository
 {
 
     public function __construct()
     {
+        parent::__construct(new AssessmentAnswers());
     }
 
     /**
@@ -18,6 +19,6 @@ class AssessmentRepository
      */
     public function getAllAssessAnswers()
     {
-        return AssessmentAnswers::all();
+        return $this->model->all();
     }
 }

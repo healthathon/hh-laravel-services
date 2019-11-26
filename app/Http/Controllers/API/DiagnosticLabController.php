@@ -20,6 +20,10 @@ use App\Model\LabsTest;
 use App\Model\ShortHealthAssessment;
 use App\Model\ThyrocareUserData;
 use App\Model\User;
+use App\Respositories\DiagnosticLabInformationRepository;
+use App\Respositories\LabRepository;
+use App\Respositories\ThyrocareUserDataRepository;
+use App\Respositories\UserRepository;
 use App\Services\ThyroCareServices;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
@@ -37,10 +41,12 @@ class DiagnosticLabController
 {
 
     private $thyrocareLabService;
+    private $userRepo;
 
     public function __construct()
     {
         $this->thyrocareLabService = new ThyroCareServices();
+        $this->userRepo = new UserRepository();
     }
 
     /**
@@ -156,7 +162,7 @@ class DiagnosticLabController
 
     public function getLabTests($labName)
     {
-        $labObject = DiagnosticLabInformation::where('name', ucfirst($labName))->first();
+        $labObject = (new DiagnosticLabInformationRepository())->where('name', ucfirst($labName))->first();
         $testCollection = new Collection($labObject->tests);
         $response['lab_name'] = ucfirst($labName);
         foreach ($testCollection->groupBy('profile') as $key => $groupTests) {
@@ -175,7 +181,7 @@ class DiagnosticLabController
      */
     public function getTestDetailInformation($testId)
     {
-        $testDetailInfo = LabsTest::where('id', $testId)->first(['test_name', 'about', 'reason_to_do', 'preparation', 'process_duration', 'result_duration', 'results', 'age_group', 'good_range',
+        $testDetailInfo = (new LabRepository())->where('id', $testId)->first(['test_name', 'about', 'reason_to_do', 'preparation', 'process_duration', 'result_duration', 'results', 'age_group', 'good_range',
             'parameters_tested', 'parameters_tested_unit', 'test_suggestions']);
         if ($testDetailInfo == null)
             // This case will never happen from application side, unless user/developer externally fire some weird query
@@ -194,7 +200,7 @@ class DiagnosticLabController
     public function getUserThyrocareOrders($id)
     {
         try {
-            $user = User::getUser($id, ['id', 'first_name', 'last_name']);
+            $user = $this->userRepo->getUser($id, ['id', 'first_name', 'last_name']);
             $user->getThyrocareTestOrders;
             return Helpers::getResponse(200, "Thyrocare Orders", $user);
         } catch (\Exception $e) {
@@ -210,7 +216,7 @@ class DiagnosticLabController
      */
     public function getThyrocareOrderBenDetails($orderNo)
     {
-        $benData = ThyrocareUserData::with('getUserBenDetails')
+        $benData = (new ThyrocareUserDataRepository())->with('getUserBenDetails')
             ->where('order_id', $orderNo)
             ->get(['order_id', 'ref_order_id']);
         return Helpers::getResponse(200, "Ben Details for order no. $orderNo", $benData);
@@ -220,7 +226,7 @@ class DiagnosticLabController
     public function getRecommendedTestForUser($userId)
     {
         try {
-            $user = User::getUser($userId);
+            $user = $this->userRepo->getUser($userId);
             $user->hasAssessmentRecord();
             return $this->thyrocareLabService->getRecommendedTestForUser($user);
         } catch (UserNotFoundException $e) {

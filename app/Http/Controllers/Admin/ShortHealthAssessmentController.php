@@ -10,6 +10,11 @@ use App\Model\SHAAnswerBasedLevelRestriction;
 use App\Model\SHAQuestionAnswers;
 use App\Model\ShortHealthAssessment;
 use App\Model\Tasks\taskBank;
+use App\Respositories\LabRepository;
+use App\Respositories\QueryTagRepository;
+use App\Respositories\SHAQuestionAnswersRepository;
+use App\Respositories\ShortHealthAssessmentRepository;
+use App\Respositories\TaskBankRepository;
 use App\Services\SHAServices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,11 +22,14 @@ use Illuminate\Support\Facades\Validator;
 
 class ShortHealthAssessmentController extends Controller
 {
-    private $shaServiceObj;
+    private $shaServiceObj, $shortHealthAssessmentRepo, $labsRepo, $taskBankRepo;
 
     public function __construct(SHAServices $shaServiceObj)
     {
         $this->shaServiceObj = $shaServiceObj;
+        $this->shortHealthAssessmentRepo = new ShortHealthAssessmentRepository();
+        $this->labsRepo = new LabRepository();
+        $this->taskBankRepo = new TaskBankRepository();
     }
 
     public function getQuestions()
@@ -36,12 +44,12 @@ class ShortHealthAssessmentController extends Controller
 
     public function getQuestionForTestRecommendationPage()
     {
-        $questions = ShortHealthAssessment::all();
+        $questions = $this->shortHealthAssessmentRepo->all();
         $formattedQuestionData = [];
         foreach ($questions as $question) {
             foreach ($question->answers as $key => $answer) {
                 $recommendedIds = array_column($answer->recommendedTests->toArray(), "test_id");
-                $testsName = LabsTest::whereIn("id", $recommendedIds)->pluck("test_name")->toArray();
+                $testsName = $this->labsRepo->whereIn("id", $recommendedIds)->pluck("test_name")->toArray();
                 $formattedQuestionData[] = [
                     'id' => $question->id,
                     'header' => $question->header,
@@ -57,8 +65,8 @@ class ShortHealthAssessmentController extends Controller
 
     public function testRecommendAnswerPage($questionId)
     {
-        $query = ShortHealthAssessment::where("id", $questionId)->first();
-        $tests = LabsTest::all();
+        $query = $this->shortHealthAssessmentRepo->where("id", $questionId)->first();
+        $tests = $this->labsRepo->all();
         $questionAnswerObject = $query->answers()->first();
         $recommendedIds = array_column($questionAnswerObject->recommendedTests->toArray(), "test_id");
         return view("admin.shortassess.modifyRecommenTest", compact("query", "tests", "recommendedIds"));
@@ -78,7 +86,7 @@ class ShortHealthAssessmentController extends Controller
         $recommend_tests = is_array($recommend_tests) ? $recommend_tests : [];
         try {
             DB::beginTransaction();
-            $shaObject = ShortHealthAssessment::where('id', $questionId)->first();
+            $shaObject = $this->shortHealthAssessmentRepo->where('id', $questionId)->first();
             $questionAnswerObject = $shaObject->answers->where("id", $answerId)->first();
             $existingRecommendationTestIds = array_column($questionAnswerObject->recommendedTests->toArray(), "test_id");
             $existingRecommendationTaskIds = count($existingRecommendationTestIds) > 0 ? $existingRecommendationTestIds : $recommend_tests;
@@ -110,12 +118,12 @@ class ShortHealthAssessmentController extends Controller
 
     public function getQuestionForTaskRecommendationPage()
     {
-        $questions = ShortHealthAssessment::all();
+        $questions = $this->shortHealthAssessmentRepo->all();
         $formattedQuestionData = [];
         foreach ($questions as $question) {
             foreach ($question->answers as $key => $answer) {
                 $recommendedIds = array_column($answer->recommendedRegimens->toArray(), "task_id");
-                $regimensName = taskBank::whereIn("id", $recommendedIds)->pluck("task_name")->toArray();
+                $regimensName = $this->taskBankRepo->whereIn("id", $recommendedIds)->pluck("task_name")->toArray();
                 $formattedQuestionData[] = [
                     'id' => $question->id,
                     'header' => $question->header,
@@ -131,9 +139,9 @@ class ShortHealthAssessmentController extends Controller
 
     public function taskRecommendAnswerPage($questionId)
     {
-        $query = ShortHealthAssessment::where("id", $questionId)->first();
-        $tagObject = queryTag::where("tag_name", ucfirst("history"))->first();
-        $regimens = taskBank::where('id', '<>', $tagObject->id)->get();
+        $query = $this->shortHealthAssessmentRepo->where("id", $questionId)->first();
+        $tagObject = (new QueryTagRepository())->where("tag_name", ucfirst("history"))->first();
+        $regimens = $this->taskBankRepo->where('id', '<>', $tagObject->id)->get();
         $questionAnswerObject = $query->answers()->first();
         $recommendedIds = array_column($questionAnswerObject->recommendedRegimens->toArray(), "task_id");
         return view("admin.shortassess.modifyRecommendRegimen", compact("query", "regimens", "recommendedIds"));
@@ -153,7 +161,7 @@ class ShortHealthAssessmentController extends Controller
         $recommend_regimens = is_array($recommend_regimens) ? $recommend_regimens : [];
         try {
             DB::beginTransaction();
-            $shaObject = ShortHealthAssessment::where('id', $questionId)->first();
+            $shaObject = $this->shortHealthAssessmentRepo->where('id', $questionId)->first();
             $questionAnswerObject = $shaObject->answers->where("id", $answerId)->first();
             $existingRecommendationTaskIds = array_column($questionAnswerObject->recommendedRegimens->toArray(), "task_id");
             $existingRecommendationTaskIds = count($existingRecommendationTaskIds) > 0 ? $existingRecommendationTaskIds : $recommend_regimens;
@@ -180,10 +188,10 @@ class ShortHealthAssessmentController extends Controller
 
     public function fetchTaskRecommendAnswerInfo($questionId, $answerId)
     {
-        $shaObject = ShortHealthAssessment::where('id', $questionId)->first();
+        $shaObject = $this->shortHealthAssessmentRepo->where('id', $questionId)->first();
         $questionAnswerObject = $shaObject->answers->where("id", $answerId)->first();
-        $tagObject = queryTag::where("tag_name", ucfirst("history"))->first();
-        $regimens = taskBank::where('id', '<>', $tagObject->id)->get();
+        $tagObject = (new QueryTagRepository())->where("tag_name", ucfirst("history"))->first();
+        $regimens = $this->taskBankRepo->where('id', '<>', $tagObject->id)->get();
         $recommendedRegimenIds = array_column($questionAnswerObject->recommendedRegimens->toArray(), "task_id");
         return [
             "data" => [
@@ -195,9 +203,9 @@ class ShortHealthAssessmentController extends Controller
 
     public function fetchTestRecommendAnswerInfo($questionId, $answerId)
     {
-        $shaObject = ShortHealthAssessment::where('id', $questionId)->first();
+        $shaObject = $this->shortHealthAssessmentRepo->where('id', $questionId)->first();
         $questionAnswerObject = $shaObject->answers->where("id", $answerId)->first();
-        $tests = LabsTest::all();
+        $tests = $this->labsRepo->all();
         $recommendedTestIds = array_column($questionAnswerObject->recommendedTests->toArray(), "test_id");
         return [
             "data" => [
@@ -270,7 +278,7 @@ class ShortHealthAssessmentController extends Controller
 
     public function restrictionLevelData()
     {
-        $possibleAnswersOfSHA = SHAQuestionAnswers::all()->except(["created_at", "updated_at"]);
+        $possibleAnswersOfSHA = (new SHAQuestionAnswersRepository())->all()->except(["created_at", "updated_at"]);
         $responseArr = [];
         foreach ($possibleAnswersOfSHA as $value) {
             if ($value->belongToQuestion->is_scoreable) {
@@ -293,7 +301,7 @@ class ShortHealthAssessmentController extends Controller
         if ($validator->fails())
             return ["error" => $validator->getMessageBag()->first()];
         $item = $request->get("item");
-        $questionAnswerObj = SHAQuestionAnswers::where("id", $id)->first();
+        $questionAnswerObj = (new SHAQuestionAnswersRepository())->where("id", $id)->first();
         try {
             $questionAnswerObj->restriction()->updateOrCreate([
                 "sha_answer_id" => $id
@@ -309,7 +317,7 @@ class ShortHealthAssessmentController extends Controller
     public function deleteRestrictionLevelData($id)
     {
         try {
-            $questionObject = SHAQuestionAnswers::where("id", $id)->first();
+            $questionObject = (new SHAQuestionAnswersRepository())->where("id", $id)->first();
             $questionObject->restriction()->delete();
             return ["data" => "Restriction Level For Answer Removed"];
         } catch (\Exception $exception) {

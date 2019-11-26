@@ -1,0 +1,503 @@
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+Date : 2019-11-17 15:27:06
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+Array
+(
+    [14] => Array
+        (
+            [predicted_week_number] => 5
+            [predicted_today] => 1
+            [date] => 2019-11-17 15:26:48
+            [last_done_date] => 2019-10-20
+            [task_start_date] => 2019-10-20
+            [start_date] => 2019-10-27
+        )
+
+    [15] => Array
+        (
+            [predicted_week_number] => 5
+            [predicted_today] => 1
+            [date] => 2019-11-17 15:26:50
+            [last_done_date] => 2019-10-20
+            [task_start_date] => 2019-10-20
+            [start_date] => 2019-10-27
+        )
+
+    [16] => Array
+        (
+            [predicted_week_number] => 5
+            [predicted_today] => 1
+            [date] => 2019-11-17 15:26:52
+            [last_done_date] => 2019-10-20
+            [task_start_date] => 2019-10-20
+            [start_date] => 2019-10-27
+        )
+
+    [17] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 7
+            [date] => 2019-11-17 15:26:54
+            [last_done_date] => 2019-10-21
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-03
+        )
+
+    [19] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 7
+            [date] => 2019-11-17 15:26:55
+            [last_done_date] => 2019-10-21
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-03
+        )
+
+    [20] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 7
+            [date] => 2019-11-17 15:26:57
+            [last_done_date] => 2019-10-21
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-03
+        )
+
+    [21] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 7
+            [date] => 2019-11-17 15:26:59
+            [last_done_date] => 2019-10-21
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-03
+        )
+
+    [22] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 7
+            [date] => 2019-11-17 15:27:01
+            [last_done_date] => 2019-10-21
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-03
+        )
+
+    [24] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 7
+            [date] => 2019-11-17 15:27:03
+            [last_done_date] => 2019-10-21
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-03
+        )
+
+)
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+Date : 2019-11-17 15:29:26
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+Array
+(
+    [25] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 7
+            [date] => 2019-11-17 15:29:03
+            [last_done_date] => 2019-10-21
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-03
+        )
+
+    [27] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 7
+            [date] => 2019-11-17 15:29:05
+            [last_done_date] => 2019-10-21
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-03
+        )
+
+    [28] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 6
+            [date] => 2019-11-17 15:29:06
+            [last_done_date] => 2019-10-22
+            [task_start_date] => 2019-10-22
+            [removed_last_tracker_id] => 32
+            [start_date] => 2019-11-03
+        )
+
+    [29] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 6
+            [date] => 2019-11-17 15:29:09
+            [last_done_date] => 2019-10-22
+            [task_start_date] => 2019-10-22
+            [removed_last_tracker_id] => 31
+            [start_date] => 2019-11-03
+        )
+
+    [30] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 5
+            [date] => 2019-11-17 15:29:11
+            [last_done_date] => 2019-10-23
+            [task_start_date] => 2019-10-23
+            [start_date] => 2019-11-03
+        )
+
+    [38] => Array
+        (
+            [predicted_week_number] => 2
+            [predicted_today] => 6
+            [date] => 2019-11-17 15:29:13
+            [last_done_date] => 2019-11-05
+            [task_start_date] => 2019-11-05
+            [removed_last_tracker_id] => 34
+            [start_date] => 2019-11-17
+        )
+
+    [39] => Array
+        (
+            [predicted_week_number] => 2
+            [predicted_today] => 6
+            [date] => 2019-11-17 15:29:16
+            [last_done_date] => 2019-11-05
+            [task_start_date] => 2019-11-05
+            [removed_last_tracker_id] => 35
+            [start_date] => 2019-11-17
+        )
+
+    [40] => Array
+        (
+            [predicted_week_number] => 2
+            [predicted_today] => 6
+            [date] => 2019-11-17 15:29:18
+            [last_done_date] => 2019-11-05
+            [task_start_date] => 2019-11-05
+            [removed_last_tracker_id] => 33
+            [start_date] => 2019-11-17
+        )
+
+    [41] => Array
+        (
+            [predicted_week_number] => 2
+            [predicted_today] => 5
+            [date] => 2019-11-17 15:29:21
+            [last_done_date] => 2019-11-06
+            [task_start_date] => 2019-11-06
+            [removed_last_tracker_id] => 38
+            [start_date] => 2019-11-17
+        )
+
+    [42] => Array
+        (
+            [predicted_week_number] => 2
+            [predicted_today] => 5
+            [date] => 2019-11-17 15:29:23
+            [last_done_date] => 2019-11-06
+            [task_start_date] => 2019-11-06
+            [removed_last_tracker_id] => 39
+            [start_date] => 2019-11-17
+        )
+
+)
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+Date : 2019-11-17 15:33:56
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+Array
+(
+    [106] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 7
+        )
+
+    [108] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 7
+            [notification] => Array
+                (
+                    [title] => Incomplete Task Warning
+                    [body] => Last day to complete task either it will reset to previous week.
+                    [sid] => 0
+                    [rid] => 23
+                    [token] => cT1qh2vPVB8:APA91bGzONYZWwtvjiEriBDB96-taTrTIG49MzaCQvgq6cc_bX85qSv1UFfw-zoSqEt_Ct2q1G--2KDjPEOha0u030dcj7Pt7G2lHPs5jPZ4iCK8isTW-jVKJs4n4rfONkB8IX4D4bnO
+                )
+
+        )
+
+    [109] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 7
+            [notification] => Array
+                (
+                    [title] => Incomplete Task Warning
+                    [body] => Last day to complete task either it will reset to previous week.
+                    [sid] => 0
+                    [rid] => 23
+                    [token] => cT1qh2vPVB8:APA91bGzONYZWwtvjiEriBDB96-taTrTIG49MzaCQvgq6cc_bX85qSv1UFfw-zoSqEt_Ct2q1G--2KDjPEOha0u030dcj7Pt7G2lHPs5jPZ4iCK8isTW-jVKJs4n4rfONkB8IX4D4bnO
+                )
+
+        )
+
+    [112] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 7
+            [notification] => Array
+                (
+                    [title] => Incomplete Task Warning
+                    [body] => Last day to complete task either it will reset to previous week.
+                    [sid] => 0
+                    [rid] => 23
+                    [token] => cT1qh2vPVB8:APA91bGzONYZWwtvjiEriBDB96-taTrTIG49MzaCQvgq6cc_bX85qSv1UFfw-zoSqEt_Ct2q1G--2KDjPEOha0u030dcj7Pt7G2lHPs5jPZ4iCK8isTW-jVKJs4n4rfONkB8IX4D4bnO
+                )
+
+        )
+
+    [114] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 7
+            [notification] => Array
+                (
+                    [title] => Incomplete Task Warning
+                    [body] => Last day to complete task either it will reset to previous week.
+                    [sid] => 0
+                    [rid] => 23
+                    [token] => cT1qh2vPVB8:APA91bGzONYZWwtvjiEriBDB96-taTrTIG49MzaCQvgq6cc_bX85qSv1UFfw-zoSqEt_Ct2q1G--2KDjPEOha0u030dcj7Pt7G2lHPs5jPZ4iCK8isTW-jVKJs4n4rfONkB8IX4D4bnO
+                )
+
+        )
+
+    [115] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 7
+            [notification] => Array
+                (
+                    [title] => Incomplete Task Warning
+                    [body] => Last day to complete task either it will reset to previous week.
+                    [sid] => 0
+                    [rid] => 23
+                    [token] => cT1qh2vPVB8:APA91bGzONYZWwtvjiEriBDB96-taTrTIG49MzaCQvgq6cc_bX85qSv1UFfw-zoSqEt_Ct2q1G--2KDjPEOha0u030dcj7Pt7G2lHPs5jPZ4iCK8isTW-jVKJs4n4rfONkB8IX4D4bnO
+                )
+
+        )
+
+)
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+Date : 2019-11-18 15:14:28
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+Array
+(
+    [14] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:20
+            [last_done_date] => 2019-10-27
+            [task_start_date] => 2019-10-20
+            [start_date] => 2019-10-28
+        )
+
+    [15] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:21
+            [last_done_date] => 2019-10-27
+            [task_start_date] => 2019-10-20
+            [start_date] => 2019-10-28
+        )
+
+    [16] => Array
+        (
+            [predicted_week_number] => 4
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:22
+            [last_done_date] => 2019-10-27
+            [task_start_date] => 2019-10-20
+            [start_date] => 2019-10-28
+        )
+
+    [17] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:23
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-04
+        )
+
+    [19] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:24
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-04
+        )
+
+    [20] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:25
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-04
+        )
+
+    [21] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:25
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-04
+        )
+
+    [22] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:26
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-04
+        )
+
+    [24] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 15:14:27
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-04
+        )
+
+)
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+Date : 2019-11-18 16:12:44
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+Array
+(
+    [25] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 16:12:36
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-04
+        )
+
+    [27] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 16:12:37
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-21
+            [start_date] => 2019-11-04
+        )
+
+    [28] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 16:12:38
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-22
+            [start_date] => 2019-11-04
+        )
+
+    [29] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 16:12:39
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-22
+            [start_date] => 2019-11-04
+        )
+
+    [30] => Array
+        (
+            [predicted_week_number] => 3
+            [predicted_today] => 2
+            [date] => 2019-11-18 16:12:40
+            [last_done_date] => 2019-11-03
+            [task_start_date] => 2019-10-23
+            [start_date] => 2019-11-04
+        )
+
+    [38] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 2
+        )
+
+    [39] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 2
+        )
+
+    [40] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 2
+        )
+
+    [41] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 2
+        )
+
+    [42] => Array
+        (
+            [predicted_week_number] => 1
+            [predicted_today] => 2
+        )
+
+)
+
+~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~~=~
+
+

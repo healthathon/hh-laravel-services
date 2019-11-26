@@ -2,18 +2,15 @@
 
 namespace App\Respositories;
 
-
 use App\Exceptions\CategoryNotFoundException;
 use App\Model\Category;
 
-class CategoryRepository
+class CategoryRepository extends BaseRepository
 {
-
-    private $categoryEloquent;
 
     public function __construct()
     {
-        $this->categoryEloquent = new Category();
+        parent::__construct(new Category());
     }
 
     /**
@@ -24,9 +21,19 @@ class CategoryRepository
     public function getCategoryIdByName($name)
     {
         $name = strtolower($name);
-        $categoryObj = $this->categoryEloquent->where('name', ucfirst($name))->first();
+        $categoryObj = $this->model->where('name', ucfirst($name))->first();
         if ($categoryObj == null)
             throw new CategoryNotFoundException();
         return $categoryObj->id;
+    }
+
+    /**
+     * This function returns category id based on category name
+     * @param $categoryName :  The Name of Category
+     * @return mixed
+     */
+    public function getCategoryInfo($categoryName)
+    {
+        return $this->model->where('name', ucfirst($categoryName))->first(['id', 'name']);
     }
 }

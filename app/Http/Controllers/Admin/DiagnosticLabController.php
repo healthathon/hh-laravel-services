@@ -6,6 +6,7 @@ use App\Model\LabsTest;
 use App\Http\Controllers\Controller;
 use App\Model\MMGBookingMailInfo;
 use App\Respositories\LabRepository;
+use App\Respositories\MMGBookingMailInfoRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -16,11 +17,12 @@ use Illuminate\Support\Facades\Validator;
 class DiagnosticLabController extends Controller
 {
 
-    private $labRepository;
+    private $labRepository, $MMGBookingMailInfoRepository;
 
     public function __construct()
     {
         $this->labRepository = new LabRepository();
+        $this->MMGBookingMailInfoRepository = new MMGBookingMailInfoRepository();
     }
 
     /**
@@ -31,14 +33,14 @@ class DiagnosticLabController extends Controller
     {
         // Get Only 1 Data
         $id = $id == null ? 1 : $id;
-        $thyrocareTest = LabsTest::where('id', $id)->first()->toArray();
-        $count = LabsTest::all()->count();
+        $thyrocareTest = $this->labRepository->where('id', $id)->first()->toArray();
+        $count = $this->labRepository->all()->count();
         return view('admin.diagnosticLab.testsView', compact('thyrocareTest', 'count'));
     }
 
     public function getSpecificTestInfo($id)
     {
-        $thyrocareTests = LabsTest::where('id', $id)->first()->toJson();
+        $thyrocareTests = $this->labRepository->where('id', $id)->first()->toJson();
         return $thyrocareTests;
     }
 
@@ -51,7 +53,7 @@ class DiagnosticLabController extends Controller
     {
         $message = "";
         try {
-            $updatedTestInfo = LabsTest::where('id', $id)->update($request->get('updateData'));
+            $updatedTestInfo = $this->labRepository->where('id', $id)->update($request->get('updateData'));
             if ($updatedTestInfo) {
                 $message = "Updated Successfully";
                 return [
@@ -86,7 +88,7 @@ class DiagnosticLabController extends Controller
 
     public function fetchTests()
     {
-        $assessmentTests = LabsTest::with(['lab:id,name'])->get(['id AS test_id', 'test_name', 'profile', 'abbr', 'test_code', 'price', 'lab_id']);
+        $assessmentTests = $this->labRepository->with(['lab:id,name'])->get(['id AS test_id', 'test_name', 'profile', 'abbr', 'test_code', 'price', 'lab_id']);
         return $assessmentTests;
     }
 
@@ -97,7 +99,7 @@ class DiagnosticLabController extends Controller
 
     public function fetchMMGMailReceiverMembers()
     {
-        $members = MMGBookingMailInfo::all();
+        $members = $this->MMGBookingMailInfoRepository->all();
         return $members;
     }
 
@@ -113,7 +115,7 @@ class DiagnosticLabController extends Controller
         if ($validate->fails())
             return ["error" => $validate->getMessageBag()->first()];
         try {
-            MMGBookingMailInfo::create($request->get("item"));
+            $this->MMGBookingMailInfoRepository->create($request->get("item"));
             return ["data" => "Member Added"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];
@@ -132,7 +134,7 @@ class DiagnosticLabController extends Controller
         if ($validate->fails())
             return ["error" => $validate->getMessageBag()->first()];
         try {
-            MMGBookingMailInfo::where("id", $id)->update($request->get("item"));
+            $this->MMGBookingMailInfoRepository->where("id", $id)->update($request->get("item"));
             return ["data" => "Member Updated"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];
@@ -142,7 +144,7 @@ class DiagnosticLabController extends Controller
     public function deleteMMGMailReceiverMembers($id)
     {
         try {
-            MMGBookingMailInfo::where('id', $id)->delete();
+            $this->MMGBookingMailInfoRepository->where('id', $id)->delete();
             return ["data" => "Member Deleted"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];

@@ -47,14 +47,5 @@ class MixedBag extends Model
         'day_6', 'day_7'
     ];
 
-    /**
-     * This function fetch the mixed bag task object from given ID
-     *
-     * @param $regimenId : Regimen ID
-     * @return mixed: Object of Regimen
-     */
-    public static function getObject($regimenId)
-    {
-        return MixedBag::where('id', $regimenId)->first();
-    }
+
 }

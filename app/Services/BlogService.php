@@ -13,6 +13,7 @@ namespace App\Services;
 use App\Model\Blog;
 use App\Model\Category;
 use App\Respositories\BlogRepository;
+use App\Respositories\CategoryRepository;
 use App\Services\Interfaces\IBlogService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -89,7 +90,7 @@ class BlogService implements IBlogService
      */
     public function getBlogByCategory(string $categoryName)
     {
-        $categoryId = Category::where('name', $categoryName)->first()->id;
+        $categoryId = (new CategoryRepository())->where('name', $categoryName)->first()->id;
         $blogs = Blog::where('categories', $categoryId)->get();
         return $blogs;
     }

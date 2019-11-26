@@ -19,16 +19,6 @@ class Query extends Model
         'updated_at'
     ];
 
-    public static function getCountOfQuestionsForGivenTag($tagId)
-    {
-        return Query::where('tag_id', $tagId)->count();
-    }
-
-    public static function getRequestedTagIdQuestions($id)
-    {
-        return Query::where('tag_id', $id)->get();
-    }
-
     public function tag()
     {
         return $this->belongsTo('App\Model\Assess\queryTag', 'tag_id', 'id');

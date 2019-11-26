@@ -83,7 +83,6 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('user/{userId}/get-profile-image', 'UserController@getUserProfileImage');
         Route::get('regimen/{id}/image', 'TaskController@displayRegimenBadgeImage');
 
-
         Route::get('{userId}/get-feeds', 'FeedsController@getFriendsFeeds');
         Route::get('{userId}/get-details', 'UserController@getUserDetails');
         Route::get('{userId}/get_task/', 'TaskController@getTask');
@@ -92,14 +91,11 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('assess/resume/{userId}/get-questions', 'AssessController@getAssessmentQuestionsForUser');
         Route::get('top-leaders', 'LeaderBoardController@getTop20Users');
         Route::get('user/{userId}/test/recommended', 'DiagnosticLabController@getRecommendedTestForUser');
-
-        Route::group(['middleware' => 'auth:api'], function () {
-            Route::group(['prefix' => 'task'], function () {
-                Route::post('register', 'TaskControllerV2@subscribeTask');
-                Route::put('complete', 'TaskControllerV2@dailyTaskCompleted');
-                Route::post('unregister', 'TaskControllerV2@unsubscribeTask');
-            });
-
+    
+        Route::group(['prefix' => 'task'], function () {
+            Route::post('register', 'TaskControllerV2@subscribeTask');
+            Route::put('complete', 'TaskControllerV2@dailyTaskCompleted');
+            Route::post('unregister', 'TaskControllerV2@unsubscribeTask');
         });
 
         // POST routes should be authenticated [ For iOS developer this rule is broken]

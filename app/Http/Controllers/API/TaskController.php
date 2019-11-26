@@ -14,6 +14,12 @@ use App\Model\Tasks\weeklyTask;
 use App\Model\User;
 use App\Model\UserAchievements;
 use App\Model\UserTask;
+use App\Respositories\AssessmentHistoryRepository;
+use App\Respositories\CategoryRepository;
+use App\Respositories\TaskBankRepository;
+use App\Respositories\UserRepository;
+use App\Respositories\UserTaskRepository;
+use App\Respositories\WeeklyTaskRepository;
 use App\Services\MixedBagService;
 use App\Services\ModuleScoreServices;
 use DateTimeZone;
@@ -31,13 +37,17 @@ class TaskController extends Controller
     public $scoreCalculatorService;
     public $feedsController;
     //Mayank Jariwala
-    private $mixedBagService, $mixedBagController;
+    private $mixedBagService, $mixedBagController, $taskBankRepo,$userTaskRepo, $weeklyTaskRepo, $userRepo;
 
     public function __construct()
     {
         $this->user = new User();
         $this->scoreCalculatorService = new ModuleScoreServices();
         $this->mixedBagService = new MixedBagService();
+        $this->taskBankRepo = new TaskBankRepository();
+        $this->userRepo = new UserRepository();
+        $this->userTaskRepo = new UserTaskRepository();
+        $this->weeklyTaskRepo = new WeeklyTaskRepository();
         $this->mixedBagController = new MixedBagController();
         try {
             $this->date = new \DateTime('', new DateTimeZone(env('DATETIME_ZONE')));
@@ -92,11 +102,11 @@ class TaskController extends Controller
         if ($isMixedBag) {
             return $this->mixedBagController->register($request);
         }
-        $taskBank = taskBank::find($task_id);
+        $taskBank = $this->taskBankRepo->find($task_id);
         if ($taskBank) {
             //Get Task Category
             $category = $taskBank->getTaskCategory->name;
-            $userTaskObject = UserTask::getUserTask($user_id);
+            $userTaskObject = $this->userTaskRepo->getUserTask($user_id);
             if (!empty((array)$userTaskObject)) {
                 // Fetch Category Name
                 $categoryFieldName = $category . '_DoingTasks';
@@ -222,7 +232,7 @@ class TaskController extends Controller
     public function getAllTasks($userId, $category)
     {
         try {
-            $user = User::where('id', $userId)->first();
+            $user = $this->userRepo->where('id', $userId)->first();
             if (!$user) {
                 return response()->json([
                     'statusCode' => 200,
@@ -234,7 +244,7 @@ class TaskController extends Controller
             $all_tasks = Array();
             $result = Array();
 
-            $temps = taskBank::where('category', ucfirst($category))->get()->groupBy('task_name');
+            $temps = $this->taskBankRepo->where('category', ucfirst($category))->get()->groupBy('task_name');
             $i = 0;
             foreach ($temps as $task_bank_all_steps) {
                 foreach ($task_bank_all_steps as $task) {
@@ -322,7 +332,7 @@ class TaskController extends Controller
                 $last_date = $task1[$i]['last_date'];
                 $is_doing_task = 1;
                 $task_index = $i;
-                $total_weeks = weeklyTask::getTaskTotalWeeks($task_id);
+                $total_weeks = $this->weeklyTaskRepo->getTaskTotalWeeks($task_id);
                 $task_week_history = $task1[$i]['task_week_history'];
                 $task_done_state = $task1[$i]['task_done_state'];
                 if ($task_done_state == 1) {
@@ -386,7 +396,7 @@ class TaskController extends Controller
      */
     public function getFinishedTaskIndex($category, $user_id, $task_id)
     {  // This function will return the index of finished task
-        $user_task = UserTask::where('user_id', $user_id)->get()->first();
+        $user_task = $this->userTaskRepo->where('user_id', $user_id)->get()->first();
         $DoingTasks = $user_task[$category . '_DoingTasks'];
 
         // Commented By Mayank Jariwala - Code of Other Developer
@@ -475,7 +485,7 @@ class TaskController extends Controller
     function getUserTask($user_id)
     {
         $user_task = null;
-        $temps = UserTask::where('user_id', $user_id)->first();
+        $temps = $this->userTaskRepo->where('user_id', $user_id)->first();
         if (!is_null($temps))
             return $temps;
         return $user_task;
@@ -511,7 +521,7 @@ class TaskController extends Controller
             $day_status = array(0, 0, 0, 0, 0, 0, 0);
             $result = array();
             $weekly_percentage = Array();
-            $weekly_tasks = weeklyTask::where('taskBank_id', $task_id)->orderBy('week')->get();
+            $weekly_tasks = $this->weeklyTaskRepo->where('taskBank_id', $task_id)->orderBy('week')->get();
             for ($i = 0; $i < count($weekly_tasks); $i++) {
                 $weekly_percentage[$i] = 0;
                 for ($j = 0; $j < 7; $j++) {
@@ -601,8 +611,8 @@ class TaskController extends Controller
 
     public function getTotalTaskDay($task_id, $week)
     {  // Will get the whole task day except for Rest days
-        $temp = weeklyTask::where([['taskBank_id', $task_id], ['week', $week]])->first();
-        $taskBank = taskBank::getTaskBankObject($task_id);
+        $temp = $this->weeklyTaskRepo->where([['taskBank_id', $task_id], ['week', $week]])->first();
+        $taskBank = $this->taskBankRepo->getTaskBankObject($task_id);
         $category = $taskBank->getTaskCategory->name;
         $total_day = 0;
         $y = 0;
@@ -637,23 +647,23 @@ class TaskController extends Controller
     {
         $user = null;
         try {
-            $user = User::getUser($userId);
+            $user = $this->userRepo->getUser($userId);
             if ($user->assessmentRecord == null || $user->assessmentRecord->finish_state !== 1)
                 return $this->mixedBagService->getCategoryMixedBagTasks($userId, $category);
             $task_day = $this->task_day;
             $category = strtolower($category);
-            $categoryId = Category::where('name', ucfirst($category))->first()->id;
-            $level = $this->mapStateToLevel(assesHistory::getUserTagState($category, $user));
+            $categoryId = (new CategoryRepository())->where('name', ucfirst($category))->first()->id;
+            $level = $this->mapStateToLevel((new AssessmentHistoryRepository())->getUserTagState($category, $user));
             if ($category !== Constants::PHYSICAL) {
-                $categoryRegimensId = taskBank::where('category', $categoryId)->pluck('id')->toArray();
+                $categoryRegimensId = $this->taskBankRepo->where('category', $categoryId)->pluck('id')->toArray();
                 $recommendedTaskId = array_column($user->recommendedTask->toArray(), 'regimen_id');
                 $recommendedTaskId = array_intersect($categoryRegimensId, $recommendedTaskId);
-                $temps = taskBank::whereIn('id', $recommendedTaskId)
+                $temps = $this->taskBankRepo->whereIn('id', $recommendedTaskId)
                     ->orderBy('step')
                     ->get()
                     ->groupBy('task_name');
             } else {
-                $temps = taskBank::where('category', $categoryId)
+                $temps = $this->taskBankRepo->where('category', $categoryId)
                     ->where('level', $level)
                     ->orderBy('step')
                     ->get()
@@ -718,7 +728,7 @@ class TaskController extends Controller
             $result[$i]["regimenName"] = $key;
             foreach ($task_bank_all_steps as $task) {
                 $task_id = $task->id;
-                $taskBankObj = taskBank::getTaskBankObject($task_id);
+                $taskBankObj = $this->taskBankRepo->getTaskBankObject($task_id);
                 $weeklyTaskResult = $this->getWeeklyTaskForRegimen($task_id);
                 $week_state = [
                     'week_number' => -1,
@@ -783,7 +793,7 @@ class TaskController extends Controller
     private function getWeeklyTaskForRegimen($regimenId)
     {
         $result = [];
-        $weekly_tasks = weeklyTask::where('taskBank_id', $regimenId)->orderBy('week')->get();
+        $weekly_tasks = $this->weeklyTaskRepo->where('taskBank_id', $regimenId)->orderBy('week')->get();
         for ($i = 0; $i < count($weekly_tasks); $i++) {
             for ($j = 0; $j < 7; $j++) {
                 $result['day_status'][$i][$j] = 0;
@@ -807,7 +817,7 @@ class TaskController extends Controller
 
     private function getWeeklyTaskInitPercentages($regimenId)
     {
-        $count = weeklyTask::getTaskTotalWeeks($regimenId);
+        $count = $this->weeklyTaskRepo->getTaskTotalWeeks($regimenId);
         return array_fill(0, $count, 0);
     }
 
@@ -824,24 +834,24 @@ class TaskController extends Controller
 
     public function getTotalWeeks($task_id)
     {  // This will get the total number of week of this task
-        return weeklyTask::where('taskBank_id', $task_id)->count();
+        return $this->weeklyTaskRepo->where('taskBank_id', $task_id)->count();
     }
 
     public function getPopularTasks($userId, $category)
     {
         try {
-            $user = User::getUser($userId);
+            $user = $this->userRepo->getUser($userId);
             if ($user->assessmentRecord == null || $user->assessmentRecord->finish_state !== 1)
                 return $this->mixedBagService->getCategoryMixedBagTasks($userId, $category);
-            $categoryId = Category::getCategoryInfo(ucfirst($category))->id;
-            $temps = taskBank::where('category', '=', $categoryId)
+            $categoryId = (new CategoryRepository())->getCategoryInfo(ucfirst($category))->id;
+            $temps = $this->taskBankRepo->where('category', '=', $categoryId)
                 ->where('registered_users', '>=', 10)
                 ->orderBy('registered_users', 'desc')
                 ->get()
                 ->groupBy('task_name');
             $task_day = $this->task_day;
             $category = strtolower($category);
-            $userTask = UserTask::getUserTask($userId);
+            $userTask = $this->userTaskRepo->getUserTask($userId);
             $returnObjectArr = $this->getRecommendationOrPopularTaskObject($temps, $category, $user, $userTask);
             $objectArr = [
                 'today' => $task_day,
@@ -882,17 +892,17 @@ class TaskController extends Controller
         if ($isMixedBag)
             return $this->mixedBagController->taskComplete($request);
         try {
-            $userObj = User::getUser($userId);
+            $userObj = $this->userRepo->getUser($userId);
             $user_task = $userObj->doingTask;
             if (is_null($user_task))
                 return Helpers::getResponse(404, "User not registered for any regimen");
-            $taskBank = taskBank::getTaskBankObject($taskId);
+            $taskBank = $this->taskBankRepo->getTaskBankObject($taskId);
             $category = $taskBank->getTaskCategory->name;
             $columnName = $category . "_DoingTasks";
             // Check Whether Doing the task
             if (in_array($taskId, $user_task->$columnName)) {
                 //Means the number of weeks of current task
-                $total_weeks = weeklyTask::getTaskTotalWeeks($taskId);
+                $total_weeks = $this->weeklyTaskRepo->getTaskTotalWeeks($taskId);
                 $tasks = $user_task->task;
                 $current_task = null;
                 $foundIndex = -1;
@@ -960,7 +970,7 @@ class TaskController extends Controller
                     if ($this->updateUserCategoryModuleScore($userObj, $taskLevel, $category)
                         && $this->updateAchievementsAndFeeds($userObj, $taskBank, $current_task['on_going_week'], $current_task['current_day'])) {
                         $categoryScore = strtolower($category) . "_score";
-                        $dayMessage = weeklyTask::getDayCompleteMessage($current_task['current_day'], $current_task['on_going_week'], $taskBank->id);
+                        $dayMessage = $this->weeklyTaskRepo->getDayCompleteMessage($current_task['current_day'], $current_task['on_going_week'], $taskBank->id);
                         $responseArr = [
                             'user_id' => $userObj->id,
                             'image' => url("api/task/$taskBank->id/week/" . $current_task['on_going_week'] . "/day/" . $current_task['current_day'] . "/image"),
@@ -1082,11 +1092,10 @@ class TaskController extends Controller
      * @return \Illuminate\Http\JsonResponse|null
      */
     // Deprecated- Developed by Other Developer
-    public
-    function taskUnregister(Request $request)
+    public function taskUnregister(Request $request)
     {
         $task_id = $request->input('task_id');
-        $taskBank = taskBank::find($task_id);
+        $taskBank = $this->taskBankRepo->find($task_id);
         $category = '';
         if (!is_null($taskBank))
             $category = $taskBank->getTaskCategory->name;
@@ -1168,8 +1177,8 @@ class TaskController extends Controller
     private function processTaskUnregister($task_id, $user_id)
     {
         try {
-            User::getUser($user_id);
-            $taskBank = taskBank::find($task_id);
+            $this->userRepo->getUser($user_id);
+            $taskBank = $this->taskBankRepo->find($task_id);
             if (!is_null($taskBank))
                 $category = $taskBank->getTaskCategory->name;
             else
@@ -1240,7 +1249,7 @@ class TaskController extends Controller
 
     public function displayRegimenBadgeImage($id)
     {
-        $taskBank = taskBank::getTaskBankObject($id);
+        $taskBank = $this->taskBankRepo->getTaskBankObject($id);
         return response()
             ->make($taskBank->image)
             ->header('Content-Type', $taskBank->image_type);
@@ -1254,7 +1263,7 @@ class TaskController extends Controller
      */
     public function displayWeeklyBadgeImage($taskBankId, $weekNo)
     {
-        $weeklyTask = weeklyTask::where('taskBank_id', $taskBankId)
+        $weeklyTask = $this->weeklyTaskRepo->where('taskBank_id', $taskBankId)
             ->where('week', $weekNo)
             ->first(['image']);
         return response()
@@ -1264,8 +1273,7 @@ class TaskController extends Controller
 
     public function displayDailyBadgeImage($taskBankId, $weekNo, $day)
     {
-        $adminTaskController = new TaskControllerV2();
-        return $adminTaskController->loadTaskSpecificWeekDayBadge($taskBankId, $weekNo, $day);
+        return (new TaskControllerV2())->loadTaskSpecificWeekDayBadge($taskBankId, $weekNo, $day);
     }
 
     private function _group_by($array, $key)

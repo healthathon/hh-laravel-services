@@ -23,6 +23,7 @@ use App\Model\UserTask;
 use App\Respositories\AssessmentRepository;
 use App\Respositories\CategoryRepository;
 use App\Respositories\TaskBankRepository;
+use App\Respositories\UserAchievementsRepository;
 use App\Respositories\UserRepository;
 use App\Respositories\WeeklyTaskRepository;
 use App\Services\Interfaces\ITaskService;
@@ -490,6 +491,8 @@ class TaskServices implements ITaskService
 
     private function updateAchievementsAndFeeds($userId, $taskBankId, $weekNo, $day)
     {
+
+        $userAchievements = new UserAchievementsRepository();
         try {
             $weekTaskObject = $this->weeklyTaskRepo->getWeekTaskObject($taskBankId, $weekNo);
             $dayImageColumn = "day$day" . "_badge";
@@ -505,9 +508,9 @@ class TaskServices implements ITaskService
                         'badge_url' => $weekTaskObject->image
                     ]
                 ];
-                UserAchievements::insert($achievementData);
+                $userAchievements->insert($achievementData);
             } else {
-                UserAchievements::updateOrCreate([
+                $userAchievements->updateOrCreate([
                     'user_id' => $userId,
                     'badge_url' => $weekTaskObject->$dayImageColumn
                 ]);

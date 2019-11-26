@@ -28,20 +28,6 @@ class UserTask extends Model
         'updated_at'
     ];
 
-    /**
-     * This function returns all task user is doing - This relationship should be in user model
-     * TODO: re-shifting require [Mayank Jariwala]
-     * @param $user_id : USER ID
-     * @return \stdClass
-     */
-    public static function getUserTask($user_id)
-    {
-        $user_task = new \stdClass();
-        $temps = UserTask::where('user_id', $user_id)->first();
-        if (!is_null($temps))
-            return $temps;
-        return $user_task;
-    }
 
     /**
      * This function should be in User Model, refactoring need to be done.
@@ -51,6 +37,11 @@ class UserTask extends Model
     public function getFullName()
     {
         return $this->getUserInfoFromId->first_name . " " . $this->getUserInfoFromId->last_name;
+    }
+
+    public function getDeviceToken()
+    {
+        return $this->getUserInfoFromId->device_token;
     }
 
     /**

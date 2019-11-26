@@ -6,6 +6,8 @@ use App\Constants;
 use App\Model\Assess\Query;
 use App\Model\Assess\queryTag;
 use App\Model\AssessmentAnswers;
+use App\Respositories\QueryRepository;
+use App\Respositories\QueryTagRepository;
 use App\Services\AssessmentService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -28,8 +30,8 @@ class MentalBankRecommendation extends Controller
     public function getAll()
     {
         try {
-            $tagId = queryTag::getTagId(Constants::EMOTIONAL_WELL_BEING);
-            $queries = Query::where("is_mental_bank", 0)
+            $tagId = (new QueryTagRepository())->getTagId(Constants::EMOTIONAL_WELL_BEING);
+            $queries = (new QueryRepository())->where("is_mental_bank", 0)
                 ->where("tag_id", $tagId)
                 ->get();
             $customizeDataArr = [];

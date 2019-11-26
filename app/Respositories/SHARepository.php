@@ -6,6 +6,7 @@ namespace App\Respositories;
 use App\Model\Assess\queryTag;
 use App\Model\SHAQuestionAnswers;
 use App\Model\ShortHealthAssessment;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use phpDocumentor\GraphViz\Exception;
@@ -13,9 +14,16 @@ use phpDocumentor\GraphViz\Exception;
 class SHARepository
 {
 
+    private $shortHealthAssessmentRepo;
+    public function __construct()
+    {
+        $this->shortHealthAssessmentRepo = new ShortHealthAssessmentRepository();
+    }
+
+
     function fetchAllQuestions()
     {
-        return ShortHealthAssessment::with('answers:id,question_id,answer,score')->get();
+        return $this->shortHealthAssessmentRepo->with('answers:id,question_id,answer,score')->get();
     }
 
     /**
@@ -32,7 +40,7 @@ class SHARepository
         if (count($multipleAnswers) !== count($multipleScores))
             return false;
         $data = Arr::except($data, ["answers", "score"]);
-        $questionObj = ShortHealthAssessment::where('id', $id)->first();
+        $questionObj = $this->shortHealthAssessmentRepo->where('id', $id)->first();
         $existingAnswers = array_column($questionObj->answers->toArray(), 'answer');
         // Unnecessary code complexity (Reason: Time Constraints)
         $deletedValues = array_diff($existingAnswers, $multipleAnswers);
@@ -56,7 +64,7 @@ class SHARepository
                             ->delete();
                     }
                 }
-                ShortHealthAssessment::where('id', $id)->update($data);
+                $this->shortHealthAssessmentRepo->where('id', $id)->update($data);
                 $this->updateHistoryOverallScore();
                 DB::commit();
             } catch (\Exception $e) {
@@ -71,7 +79,7 @@ class SHARepository
     function updateHistoryOverallScore()
     {
         $historyObject = queryTag::where("tag_name", ucfirst("history"))->first();
-        $shortHealthAssessObj = ShortHealthAssessment::all();
+        $shortHealthAssessObj = $this->shortHealthAssessmentRepo->all();
         $overallScore = 0;
         foreach ($shortHealthAssessObj as $value) {
             if ($value->is_scoreable && $value->multiple) {
@@ -87,7 +95,7 @@ class SHARepository
 
     function deleteQuestion(int $id)
     {
-        return ShortHealthAssessment::where('id', $id)->with('answers:id')->delete();
+        return $this->shortHealthAssessmentRepo->where('id', $id)->with('answers:id')->delete();
     }
 
     /**
@@ -104,7 +112,7 @@ class SHARepository
         DB::beginTransaction();
         DB::transaction(function () use ($data, $multipleAnswers, $answersArr) {
             try {
-                $object = ShortHealthAssessment::create($data);
+                $object = $this->shortHealthAssessmentRepo->create($data);
                 foreach ($multipleAnswers as $multipleAnswer) {
                     $answersArr[] = [
                         'question_id' => $object->id,

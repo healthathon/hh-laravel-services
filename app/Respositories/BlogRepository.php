@@ -5,25 +5,31 @@ namespace App\Respositories;
 
 use App\Exceptions\BlogNotFoundException;
 use App\Model\Blog;
+use Illuminate\Database\Eloquent\Model;
 
-class BlogRepository
+class BlogRepository extends BaseRepository
 {
+
+    public function __construct()
+    {
+        parent::__construct(new Blog());
+    }
 
     function fetchBlogs()
     {
-        return Blog::all();
+        return $this->model->all();
     }
 
     public function blogInfoById(int $id)
     {
-        $blogInfo = Blog::where('id', $id)->first();
+        $blogInfo = $this->model->where('id', $id)->first();
         $blogInfo->published_date = date_format(date_create($blogInfo->published_date), "Y-m-d");
         return $blogInfo;
     }
 
     function saveBlog($data)
     {
-        return Blog::create($data);
+        return $this->model->create($data);
     }
 
     /**
@@ -34,10 +40,10 @@ class BlogRepository
      */
     function updateBlog(array $data, int $id)
     {
-        $blog = Blog::where('id', $id)->first();
+        $blog = $this->model->where('id', $id)->first();
         if ($blog == null)
             throw new BlogNotFoundException();
-        return Blog::where('id', $id)->update($data);
+        return $this->model->where('id', $id)->update($data);
     }
 
     /**
@@ -47,9 +53,9 @@ class BlogRepository
      */
     public function deleteBlog(int $id)
     {
-        $blog = Blog::where('id', $id)->first();
+        $blog = $this->model->where('id', $id)->first();
         if ($blog == null)
             throw new BlogNotFoundException();
-        return Blog::where('id', $id)->delete();
+        return $this->model->where('id', $id)->delete();
     }
 }

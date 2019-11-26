@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Model\Category;
 use App\Model\Tasks\taskBank;
 use App\Model\Tasks\weeklyTask;
+use App\Respositories\CategoryRepository;
+use App\Respositories\TaskBankRepository;
 use App\Respositories\WeeklyTaskRepository;
 use App\Services\TaskServices;
 use Illuminate\Http\Request;
@@ -16,12 +18,14 @@ use Illuminate\Support\Facades\Validator;
 
 class TaskControllerV2 extends Controller
 {
-    private $taskServices, $weekTaskRepo;
+    private $taskServices, $weekTaskRepo, $categoryRepo, $taskBankRepo;
 
-    public function __construct(TaskServices $taskServices, WeeklyTaskRepository $weekTaskRepo)
+    public function __construct(TaskServices $taskServices, WeeklyTaskRepository $weekTaskRepo, CategoryRepository $categoryRepo)
     {
         $this->taskServices = $taskServices;
         $this->weekTaskRepo = $weekTaskRepo;
+        $this->categoryRepo = $categoryRepo;
+        $this->taskBankRepo = new TaskBankRepository();
     }
 
 
@@ -41,14 +45,14 @@ class TaskControllerV2 extends Controller
 
     public function regimenPage(string $category)
     {
-        $categoryObj = Category::getCategoryInfo($category);
+        $categoryObj = $this->categoryRepo->getCategoryInfo($category);
         $categoryId = $categoryObj->id;
         return view('admin.tasks.taskBankV2.taskBankView', compact('category', 'categoryId'));
     }
 
     public function getRegimenInfo($categoryName)
     {
-        $category = Category::getCategoryInfo($categoryName);
+        $category = $this->categoryRepo->getCategoryInfo($categoryName);
         return $this->taskServices->getCategoryRegimens($category->id);
     }
 
@@ -130,7 +134,7 @@ class TaskControllerV2 extends Controller
 
     public function getRegimenWeekInfoPage($regimenCode, $weekNo)
     {
-        $total_weeks = weeklyTask::getTaskTotalWeeks($regimenCode);
+        $total_weeks = $this->weekTaskRepo->getTaskTotalWeeks($regimenCode);
         try {
             $category = $this->taskServices->regimenByCode($regimenCode, ["id", "category"]);
             $categoryName = $category->getTaskCategory->name;
@@ -256,7 +260,7 @@ class TaskControllerV2 extends Controller
         $id = $taskBankObj["ID"];
         $bankFieldToUpdate = array_except($taskBankObj, ['id']);
         try {
-            taskBank::updateTaskBank($id, $bankFieldToUpdate);
+            $this->taskBankRepo->updateTaskBank($id, $bankFieldToUpdate);
             return ["data" => "Regimen Updated"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];
@@ -315,7 +319,7 @@ class TaskControllerV2 extends Controller
 
     public function fetchTestNameFromTestId($regimenIdArr)
     {
-        $testNameArr = taskBank::whereIn('id', $regimenIdArr)->pluck('title')->toArray();
+        $testNameArr = $this->taskBankRepo->whereIn('id', $regimenIdArr)->pluck('title')->toArray();
         return array_unique($testNameArr);
     }
 
@@ -404,12 +408,12 @@ class TaskControllerV2 extends Controller
     private function truncateAndAddNewData(string $tableName, array $newData)
     {
         if ($tableName == "task_banks") {
-            taskBank::query()->truncate();
-            taskBank::insert($newData);
+            $this->taskBankRepo->query()->truncate();
+            $this->taskBankRepo->insert($newData);
             return true;
         } else if ($tableName == "weekly_tasks") {
-            weeklyTask::query()->truncate();
-            weeklyTask::insert($newData);
+            $this->weekTaskRepo->query()->truncate();
+            $this->weekTaskRepo->insert($newData);
             return true;
         }
         return false;

@@ -21,6 +21,10 @@ use App\Model\User;
 use App\Model\UserHealthHistory;
 use App\Model\UsersTestsRecommendation;
 use App\Model\UserTaskRecommendation;
+use App\Respositories\AssessmentQuestionsTagOrderRepository;
+use App\Respositories\QueryTagRepository;
+use App\Respositories\SHATaskRecommendationRepository;
+use App\Respositories\ShortHealthAssessmentRepository;
 use App\Respositories\UserRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -47,7 +51,7 @@ class UserService
      */
     public function changeUserPassword($request)
     {
-        $user = User::where('id', '=', $request->get('user_id'))->first();
+        $user = $this->userRepo->where('id', '=', $request->get('user_id'))->first();
         if (!is_null($user)) {
             $current_password = $request->get('current_password');
             if (Hash::check($current_password, $user->password)) {
@@ -92,7 +96,8 @@ class UserService
      */
     public function updateProfile($request)
     {
-        $user = User::where('id', $request->get('user_id'))->first();
+        $user = $this->userRepo->where('id', $request->get('user_id'))->first();
+
         if (!is_null($user)) {
             try {
                 if ($user->update($request->all())) {
@@ -152,7 +157,7 @@ class UserService
     public function updateBMI(\Illuminate\Http\Request $request)
     {
         try {
-            $user = User::getUser($request->get('user_id'));
+            $user = $this->userRepo->getUser($request->get('user_id'));
             $user = $this->processBMI($request->get('height'), $request->get('weight'), $user);
             if ($user->save()) {
                 return Helpers::getResponse(200, "User Information save successfully", $user->only(['height', 'weight', 'BMI', 'BMI_state', 'BMI_score']));
@@ -214,7 +219,7 @@ class UserService
         $user->BMI = $bmi;
         $user->BMI_state = $bmi_state;
         $user->BMI_score = $bmi_score;
-        $bmiObject = queryTag::where('tag_name', strtoupper(Constants::BMI))->first([
+        $bmiObject = (new QueryTagRepository())->where('tag_name', strtoupper(Constants::BMI))->first([
             'id', 'excellent_marks', 'good_marks', 'bad_marks'
         ]);
         $tagStateColumn = "tag" . $bmiObject->id . "_state";
@@ -266,7 +271,7 @@ class UserService
      */
     public function updatePassword($email)
     {
-        $userObj = User::where('email', $email)->first(['id', 'email', 'password']);
+        $userObj = $this->userRepo->where('email', $email)->first(['id', 'email', 'password']);
         if ($userObj == null)
             return Helpers::getResponse(404, "Email address not found");
         $newPassword = $this->generateRandomPassword();
@@ -304,7 +309,7 @@ class UserService
     public function putAboutUserShortHealthData($id, $request)
     {
         try {
-            $user = User::getUser($id);
+            $user = $this->userRepo->getUser($id);
             $collectUserAnswer = [];
             $answerObject = $request["answers"];
             $objectToSave = [];
@@ -312,15 +317,15 @@ class UserService
             $recommendedTestIds = [];
             $calculatedScore = 0;
             foreach ($answerObject as $key => $answers) {
-                $shaObject = ShortHealthAssessment::where('id', $answers["questionId"])->first();
+                $shaObject = (new ShortHealthAssessmentRepository())->where('id', $answers["questionId"])->first();
                 $calculatedScore += $this->isSHAQuestionMultipleAndScoreable($shaObject, $answers["answers"]);
                 foreach ($answers["answers"] as $answer) {
                     if ($this->isSHAQuestionNotMultipleAndScoreable($shaObject))
                         $calculatedScore += $this->getShaAnswerScore($shaObject, $answers["questionId"], $answer);
                     if ($shaObject->is_scoreable) {
                         array_push($collectUserAnswer, $answer);
-                        $taskIds = SHATaskRecommendation::where('answer_id', $answer)->pluck("task_id");
-                        $testIds = SHATestRecommendation::where('answer_id', $answer)->pluck("test_id");
+                        $taskIds = (new SHATaskRecommendationRepository())->where('answer_id', $answer)->pluck("task_id");
+                        $testIds = (new SHATaskRecommendationRepository())->where('answer_id', $answer)->pluck("test_id");
                         $recommendedTaskIds = array_merge($recommendedTaskIds, $taskIds->toArray());
                         $recommendedTestIds = array_merge($recommendedTestIds, $testIds->toArray());
                     }
@@ -339,16 +344,16 @@ class UserService
                 $user->restriction()->delete();
                 if ($user->assessmentRecord == null) {
                     $assessmentRecord = new assesHistory();
-                    $tagId = queryTag::where("tag_name", ucfirst("history"))->first()->id;
+                    $tagId = (new QueryTagRepository())->where("tag_name", ucfirst("history"))->first()->id;
                     $tagColumn = "tag" . $tagId . "_score";
                     $tagStateColumn = "tag" . $tagId . "_state";
                     $assessmentRecord->user_id = $user->id;
                     $assessmentRecord->tags_completed = [$tagId];
-                    $assessmentRecord->order_seq_id = AssessmentQuestionsTagOrder::where("is_active", 1)->first()->id;
+                    $assessmentRecord->order_seq_id = (new AssessmentQuestionsTagOrderRepository())->where("is_active", 1)->first()->id;
                     $assessmentRecord->$tagColumn = $calculatedScore;
                     $assessmentRecord->$tagStateColumn = $this->assessmentService->getTagState($tagId, $calculatedScore);
                 } else {
-                    $tagId = queryTag::where("tag_name", ucfirst("history"))->first()->id;
+                    $tagId = (new QueryTagRepository())->where("tag_name", ucfirst("history"))->first()->id;
                     $tagColumn = "tag" . $tagId . "_score";
                     $tagStateColumn = "tag" . $tagId . "_state";
                     $assessmentRecord = $user->assessmentRecord;
@@ -357,7 +362,7 @@ class UserService
                     if (!in_array($tagId, $completedTags))
                         array_push($completedTags, $tagId);
                     $assessmentRecord->tags_completed = $completedTags;
-                    $assessmentRecord->order_seq_id = AssessmentQuestionsTagOrder::where("is_active", 1)->first()->id;
+                    $assessmentRecord->order_seq_id = (new AssessmentQuestionsTagOrderRepository())->where("is_active", 1)->first()->id;
                     $assessmentRecord->$tagColumn = $calculatedScore;
                     $assessmentRecord->$tagStateColumn = $this->assessmentService->getTagState($tagId, $calculatedScore);
                 }

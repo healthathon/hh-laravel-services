@@ -41,59 +41,5 @@ class MixedBagUserHistory extends Model
         'updated_at'
     ];
 
-    /**
-     * This function fetch user object who is doing MixedBag Task
-     *
-     * @param $userId : User ID
-     * @param $regimenId : MixedBag Regimen ID
-     * @return $mixed|null:  Return Object of user or null
-     */
-    public static function getUserMbObject($userId, $regimenId)
-    {
-        if (!self::userDoingRegimen($userId, $regimenId))
-            return null;
-        else
-            return MixedBagUserHistory::where('user_id', $userId)->where('regimen_id', $regimenId)->first();
-    }
 
-    /**
-     * This function checks whether user is doing an regimen
-     *
-     * @param $userId : User ID
-     * @param $regimenId : MixedBag Regimen ID
-     * @return mixed
-     */
-    public static function userDoingRegimen($userId, $regimenId)
-    {
-        return MixedBagUserHistory::where('user_id', $userId)->where('regimen_id', $regimenId)->exists();
-    }
-
-    /**
-     * This function fetch user doing mixed bag tasks
-     *
-     * @param $userId : User ID
-     * @param $regimenId : MixedBag Regimen ID
-     * @return mixed
-     */
-    public static function getUserDoingTasks($userId, $regimenId)
-    {
-        return MixedBagUserHistory::where('user_id', $userId)
-            ->where('category', $regimenId)
-            ->pluck('regimen_id')
-            ->toArray();
-    }
-
-    /**
-     * This function removes/unregister user from mixed bag task
-     *
-     * @param $userId : User ID
-     * @param $regimenId : MixedBag Regimen ID
-     * @return mixed
-     */
-    public static function removeUser($userId, $regimenId)
-    {
-        return MixedBagUserHistory::where('user_id', $userId)
-            ->where('regimen_id', $regimenId)
-            ->delete();
-    }
 }

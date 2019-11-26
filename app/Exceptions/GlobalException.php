@@ -16,6 +16,7 @@ class GlobalException extends Exception
 
     public function sendGlobalExceptionResponse($e)
     {
+
         return Helpers::getResponse(404, $e->getMessage());
     }
 

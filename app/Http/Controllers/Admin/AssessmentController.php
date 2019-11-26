@@ -16,7 +16,17 @@ use App\Model\LabsTest;
 use App\Model\MentalWellBeingLevelMapping;
 use App\Model\Tasks\taskBank;
 use App\Model\TestCorrespondingAssessmentQuestionsAnswer;
+use App\Respositories\AssessmentQuestionsTagOrderRepository;
+use App\Respositories\AssessmentRepository;
 use App\Respositories\CategoryRepository;
+use App\Respositories\LabRepository;
+use App\Respositories\MentalWellBeingLevelMappingRepository;
+use App\Respositories\QueryCategoryRepository;
+use App\Respositories\QueryRepository;
+use App\Respositories\QueryTagRepository;
+use App\Respositories\ScoreInterpRepository;
+use App\Respositories\TaskBankRepository;
+use App\Respositories\TestCorrespondingAssessmentQuestionsAnswerRepository;
 use App\Services\AssessmentService;
 use App\Services\LabService;
 use App\Services\QuestionService;
@@ -28,7 +38,8 @@ use Illuminate\Support\Facades\Validator;
 
 class AssessmentController extends Controller
 {
-    private $assessmentService, $labService, $questionService, $categoryRepo;
+    private $assessmentService, $labService, $questionService, $categoryRepo,$assessmentAnswersRepo,
+            $queryCategoryRepo, $taskBankRepo, $queryRepo, $labRepo;
 
     public function __construct()
     {
@@ -36,6 +47,11 @@ class AssessmentController extends Controller
         $this->labService = new LabService();
         $this->questionService = new QuestionService();
         $this->categoryRepo = new CategoryRepository();
+        $this->assessmentAnswersRepo = new AssessmentRepository();
+        $this->taskBankRepo = new TaskBankRepository();
+        $this->queryCategoryRepo = new QueryCategoryRepository();
+        $this->queryRepo = new QueryRepository();
+        $this->labRepo = new LabRepository();
     }
 
     public function taskRecommendRegimenPage()
@@ -57,7 +73,7 @@ class AssessmentController extends Controller
         if ($validator->fails())
             return ["error" => $validator->getMessageBag()->first()];
         try {
-            AssessmentAnswers::where("id", $id)->update(["restricted_level" => $item["restricted_level"]]);
+            $this->assessmentAnswersRepo->where("id", $id)->update(["restricted_level" => $item["restricted_level"]]);
             return ["data" => "Recommendation Updated"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];
@@ -72,7 +88,7 @@ class AssessmentController extends Controller
         $recommendedIds = array_column($answerObj->recommend_regimen->toArray(), 'recommended_regimen');
         try {
             $categoryId = $this->categoryRepo->getCategoryIdByName(Constants::PHYSICAL);
-            $regimens = taskBank::where('category', '<>', $categoryId)->get(['id', 'task_name', 'title']);
+            $regimens = $this->taskBankRepo->where('category', '<>', $categoryId)->get(['id', 'task_name', 'title']);
             return view('admin.tasks.modifyRegimen', compact('query', 'answers',
                 'regimens', 'recommendedIds'));
         } catch (\Exception $e) {
@@ -97,12 +113,12 @@ class AssessmentController extends Controller
 
     public function getRegimensCorrespondingToAnswer($queryId, $answer)
     {
-        $queryAnswerObject = AssessmentAnswers::where('query_id', $queryId)
+        $queryAnswerObject = $this->assessmentAnswersRepo->where('query_id', $queryId)
             ->where('answer', $answer)->first();
         $recommendedIds = array_column($queryAnswerObject->recommend_regimen->toArray(), 'recommended_regimen');
-        $categoryId = Category::where('name', ucfirst(Constants::PHYSICAL))->first()->id;
+        $categoryId = $this->categoryRepo->where('name', ucfirst(Constants::PHYSICAL))->first()->id;
         // Do not send physical task
-        $regimens = taskBank::where('category', '<>', $categoryId)->get(['id', 'task_name', 'title']);
+        $regimens = $this->taskBankRepo->where('category', '<>', $categoryId)->get(['id', 'task_name', 'title']);
         return [
             'status' => true,
             'recommended_task' => $recommendedIds,
@@ -117,7 +133,7 @@ class AssessmentController extends Controller
 
     public function fetchRecommendedTests()
     {
-        $assessmentAnswers = AssessmentAnswers::all();
+        $assessmentAnswers = $this->assessmentAnswersRepo->all();
         $customizeDataArr = [];
         foreach ($assessmentAnswers as $answer) {
             $testIds = array_column($answer->recommend_test->toArray(), 'recommended_test');
@@ -138,23 +154,23 @@ class AssessmentController extends Controller
 
     public function updateTestRecommendationPage($queryId, $answer)
     {
-        $query = Query::where('id', $queryId)->first(['id', 'tag_id', 'query', 'results_string']);
-        $queryAnswerObject = AssessmentAnswers::where('query_id', $queryId)
+        $query = $this->queryRepo->where('id', $queryId)->first(['id', 'tag_id', 'query', 'results_string']);
+        $queryAnswerObject = $this->assessmentAnswersRepo->where('query_id', $queryId)
             ->where('answer', $answer)->first();
         $answers = explode(",", $query->results_string);
         // RecommendedTest : Test recommend to corresponding answers
         $recommendedIds = array_column($queryAnswerObject->recommend_test->toArray(), 'recommended_test');
-        $assessmentTests = LabsTest::all();
+        $assessmentTests = $this->labRepo->all();
         return view('admin.assess.modifyTest', compact('query', 'answers',
             'assessmentTests', 'recommendedIds'));
     }
 
     public function getTestsCorrespondingToAnswer($queryId, $answer)
     {
-        $queryAnswerObject = AssessmentAnswers::where('query_id', $queryId)
+        $queryAnswerObject = $this->assessmentAnswersRepo->where('query_id', $queryId)
             ->where('answer', $answer)->first();
         $recommendedIds = array_column($queryAnswerObject->recommend_test->toArray(), 'recommended_test');
-        $tests = LabsTest::all()->toArray();
+        $tests = $this->labRepo->all()->toArray();
         return [
             'status' => true,
             'recommended_test' => $recommendedIds,
@@ -168,7 +184,7 @@ class AssessmentController extends Controller
         $queryId = $request->get('query_id');
         $testIds = $request->get('recommended_test');
         $testIds = is_array($testIds) ? $testIds : [];
-        $answerId = AssessmentAnswers::where('query_id', $queryId)
+        $answerId = $this->assessmentAnswersRepo->where('query_id', $queryId)
             ->where('answer', $answer)
             ->first()->id;
         $newRecommendedTest = [];
@@ -178,7 +194,7 @@ class AssessmentController extends Controller
                 'recommended_test' => $testId
             ];
         }
-        $previousRecommendation = TestCorrespondingAssessmentQuestionsAnswer::where('answer_id', $answerId);
+        $previousRecommendation = (new TestCorrespondingAssessmentQuestionsAnswerRepository())->where('answer_id', $answerId);
         if (count($previousRecommendation->get()) > 0) {
             if ($previousRecommendation->delete()) {
                 return $this->updateTestRecommendation($newRecommendedTest);
@@ -194,7 +210,7 @@ class AssessmentController extends Controller
 
     private function updateTestRecommendation($newRecommendedRegimen)
     {
-        TestCorrespondingAssessmentQuestionsAnswer::insert($newRecommendedRegimen);
+        (new TestCorrespondingAssessmentQuestionsAnswerRepository())->insert($newRecommendedRegimen);
         return response()->json([
             'status' => true,
             'message' => "Updated"
@@ -203,14 +219,14 @@ class AssessmentController extends Controller
 
     public function rearrangeAssessmentTags()
     {
-        $tags = queryTag::getTagsNameWithId();
+        $tags = (new QueryTagRepository())->getTagsNameWithId();
         return view('admin.assess.assessmentTagOrder', compact('tags'));
     }
 
     public function getDefinedTagOrderSequence()
     {
         $tagNames = [];
-        $orderSequences = AssessmentQuestionsTagOrder::all()->toArray();
+        $orderSequences = (new AssessmentQuestionsTagOrderRepository())->all()->toArray();
         foreach ($orderSequences as $orderSequence) {
             $nameArr = [];
             $idsArr = [];
@@ -236,7 +252,7 @@ class AssessmentController extends Controller
         $item = $request->get("item");
         try {
             DB::table('assessment_questions_tag_orders')->update(['is_active' => 0]);
-            AssessmentQuestionsTagOrder::where('id', $item["id"])->update(['is_active' => 1]);
+            (new AssessmentQuestionsTagOrderRepository())->where('id', $item["id"])->update(['is_active' => 1]);
             return ["data" => "Updated"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];
@@ -249,7 +265,7 @@ class AssessmentController extends Controller
     {
         $tagIds = $request->get('tagIds');
         $status = $request->get('status');
-        $totalTagsExceptBMI = queryTag::where('tag_name', '<>', 'BMI')
+        $totalTagsExceptBMI = (new QueryTagRepository())->where('tag_name', '<>', 'BMI')
             ->where('tag_name', '<>', 'History')
             ->count();
         if (count($tagIds) !== $totalTagsExceptBMI)
@@ -261,7 +277,7 @@ class AssessmentController extends Controller
             $newTagOrder->save();
             if ($status)
                 // Deactivate all other order sequence
-                AssessmentQuestionsTagOrder::where('id', '<>', $newTagOrder->id)->update(['is_active' => 0]);
+                (new AssessmentQuestionsTagOrderRepository())->where('id', '<>', $newTagOrder->id)->update(['is_active' => 0]);
             return ["data" => "New Tag Order Saved"];
         }
     }
@@ -273,7 +289,7 @@ class AssessmentController extends Controller
 
     public function showQuestionCategoryList()
     {
-        $categories = queryCategory::all();
+        $categories = $this->queryCategoryRepo->all();
         $result = Array();
         $i = 0;
         foreach ($categories as $category) {
@@ -298,7 +314,7 @@ class AssessmentController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $category = queryCategory::find($id);
+        $category = $this->queryCategoryRepo->find($id);
         $category->category_name = $item['Category_Name'];
         $category->happy_marks = $item['Happy_Zone'];
         $category->excellent_marks = $item['Excellent'];
@@ -309,7 +325,7 @@ class AssessmentController extends Controller
 
     public function showQuestionTag()
     {
-        $categories = queryCategory::all();
+        $categories = $this->queryCategoryRepo->all();
         $i = 0;
         $result = Array();
         foreach ($categories as $category) {
@@ -323,7 +339,7 @@ class AssessmentController extends Controller
 
     public function showQuestionTagList()
     {
-        $tags = queryTag::all();
+        $tags = (new QueryTagRepository())->all();
         $result = Array();
         $i = 0;
         foreach ($tags as $tag) {
@@ -351,7 +367,7 @@ class AssessmentController extends Controller
 
         $item = $request->input('item');
         $id = $item['ID'];
-        $tag = queryTag::find($id);
+        $tag = (new QueryTagRepository())->find($id);
         $tag->tag_name = $item['Tag_Name'];
         $tag->happy_marks = $item['Happy_Zone'];
         $tag->work_more_score = $item['Work_More'];
@@ -364,7 +380,7 @@ class AssessmentController extends Controller
 
     public function showQuestion()
     {
-        $tags = queryTag::all();
+        $tags = (new QueryTagRepository())->all();
         $result = Array();
         $i = 0;
         foreach ($tags as $tag) {
@@ -378,7 +394,7 @@ class AssessmentController extends Controller
 
     public function showQuestionList()
     {
-        $queries = Query::all();
+        $queries = $this->queryRepo->all();
         $result = Array();
         $i = 0;
         foreach ($queries as $query) {
@@ -401,7 +417,7 @@ class AssessmentController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $query = Query::find($id);
+        $query = $this->queryRepo->find($id);
         $query->tag_id = $item['Tag'];
         $query->query = $item['Query'];
         $query->results_string = $item['Result_String'];
@@ -459,7 +475,7 @@ class AssessmentController extends Controller
                 ];
             }
             $this->updateTagOverallScore($item['Tag'], $item['Result_Mark'], Constants::ADD);
-            AssessmentAnswers::insert($newEntryInAssessmentAnswers);
+            $this->assessmentAnswersRepo->insert($newEntryInAssessmentAnswers);
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -473,7 +489,7 @@ class AssessmentController extends Controller
 
     private function updateTagOverallScore($tagId, $resultsValue, $action = Constants::ADD)
     {
-        $queryInfo = queryTag::where('id', $tagId)->first();
+        $queryInfo = (new QueryTagRepository())->where('id', $tagId)->first();
         $scores = explode(",", $resultsValue);
         switch ($action) {
             case Constants::ADD:
@@ -494,16 +510,16 @@ class AssessmentController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $query = Query::find($id);
+        $query = $this->queryRepo->find($id);
         $this->updateTagOverallScore($query->tag_id, $query->results_value, Constants::REMOVE);
-        AssessmentAnswers::where('query_id', $query->id)->delete();
+        $this->assessmentAnswersRepo->where('query_id', $query->id)->delete();
         $query->delete();
     }
 
     public function showInterp()
     {
         $result = Array();
-        $categories = queryCategory::all();
+        $categories = $this->queryCategoryRepo->all();
         $i = 0;
         foreach ($categories as $category) {
             $result[$i]['category_name'] = $category->category_name;
@@ -515,7 +531,7 @@ class AssessmentController extends Controller
 
     public function showInterpList()
     {
-        $interps = scoreInterp::all();
+        $interps = (new ScoreInterpRepository())->all();
         $result = Array();
         $i = 0;
         foreach ($interps as $interp) {
@@ -560,7 +576,7 @@ class AssessmentController extends Controller
     {
         $item = $request->input('item');
         $id = $item['ID'];
-        $interp = scoreInterp::find($id);
+        $interp = (new ScoreInterpRepository())->find($id);
         $interp->category1 = $item['category1'];
         $interp->category2 = $item['category2'];
         $interp->category3 = $item['category3'];
@@ -598,10 +614,10 @@ class AssessmentController extends Controller
     {
         $dataArray = $request["item"];
         if ($isEditPage) {
-            LabsTest::where('id', $dataArray['id'])
+            $this->labRepo->where('id', $dataArray['id'])
                 ->update(['test' => $dataArray['test']]);
         } else {
-            $object = LabsTest::create($dataArray);
+            $object = $this->labRepo->create($dataArray);
             $dataArray["id"] = $object->id;
         }
         return $dataArray;
@@ -609,7 +625,7 @@ class AssessmentController extends Controller
 
     public function deleteTest($id)
     {
-        LabsTest::where('id', $id)->delete();
+        $this->labRepo->where('id', $id)->delete();
     }
 
     public function mentalScoreLevelMappingPage()
@@ -619,7 +635,7 @@ class AssessmentController extends Controller
 
     public function fetchMentalScoreLevelMappingInfo()
     {
-        return MentalWellBeingLevelMapping::orderBy("score")->get();
+        return (new MentalWellBeingLevelMappingRepository())->orderBy("score")->get();
     }
 
     public function insertMentalScoreLevelMappingInfo(Request $request)
@@ -633,7 +649,7 @@ class AssessmentController extends Controller
         if ($validator->fails())
             return ["error" => $validator->getMessageBag()->first()];
         try {
-            MentalWellBeingLevelMapping::create($item);
+            (new MentalWellBeingLevelMappingRepository())->create($item);
             return ["data" => "New Score Level Mapping Added"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];
@@ -652,7 +668,7 @@ class AssessmentController extends Controller
             return ["error" => $validator->getMessageBag()->first()];
         try {
             $item = array_except($item, "id");
-            MentalWellBeingLevelMapping::where("id", $id)->update($item);
+            (new MentalWellBeingLevelMappingRepository())->where("id", $id)->update($item);
             return ["data" => "Score Level Mapping Updated"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];
@@ -662,7 +678,7 @@ class AssessmentController extends Controller
     public function deleteMentalScoreLevelMappingInfo($id)
     {
         try {
-            MentalWellBeingLevelMapping::where("id", $id)->delete();
+            (new MentalWellBeingLevelMappingRepository())->where("id", $id)->delete();
             return ["data" => "Score Level Mapping Deleted"];
         } catch (\Exception $e) {
             return ["error" => $e->getMessage()];

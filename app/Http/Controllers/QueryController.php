@@ -6,6 +6,9 @@ namespace App\Http\Controllers;
 //use http\QueryString;
 //use MongoDB\Driver\ReadConcern;
 
+use App\Respositories\QueryCategoryRepository;
+use App\Respositories\ScoreInterpRepository;
+use App\Respositories\UserRepository;
 use Illuminate\Http\Request;
 use App\Model\Assess\Query;
 use App\Model\Assess\queryCategory;
@@ -15,6 +18,12 @@ use Illuminate\Support\Facades\Auth;
 
 class QueryController extends Controller
 {
+    protected $queryCategoryRepo;
+    public function __construct()
+    {
+        $this->queryCategoryRepo = new QueryCategoryRepository();
+    }
+
     function insertQueryCategory(Request $request)
     {
         $queryCategory = new queryCategory;
@@ -33,7 +42,7 @@ class QueryController extends Controller
 
     function getQueryCategory()
     {
-        $query_categories = queryCategory::all();
+        $query_categories = $this->queryCategoryRepo->all();
         $result = Array();
         $i = 0;
         foreach ($query_categories as $query_category) {
@@ -47,7 +56,7 @@ class QueryController extends Controller
     function getQuery(Request $request)
     {   //Get Query
         $category_name = $request->input('category_name');
-        $category = queryCategory::where('category_name', $category_name)->get();
+        $category = $this->queryCategoryRepo->where('category_name', $category_name)->get();
         if ($category->first()) {
             $category_id = $category->first()->id;
             $queries = Query::where('category_id', $category_id)->get();
@@ -73,7 +82,7 @@ class QueryController extends Controller
     function insertQuery(Request $request)
     {
         $category_name = $request->input('category_name');
-        $category = queryCategory::where('category_name', $category_name)->get()->first();
+        $category = $this->queryCategoryRepo->where('category_name', $category_name)->get()->first();
         $category_id = $category->id;
         $query = new Query;
         $query->category_id = $category_id;
@@ -156,11 +165,11 @@ class QueryController extends Controller
         //-----------  Getting Level  --------------//
 
         $level = 1;
-        $score_interp1 = scoreInterp::where([['general_health', '=', $general_health], ['fitness_bmi', '=', $fitness], ['habits', '=', $habits]])->get();
+        $score_interp1 = (new ScoreInterpRepository())->where([['general_health', '=', $general_health], ['fitness_bmi', '=', $fitness], ['habits', '=', $habits]])->get();
         if ($score_interp1->first())
             $level = $score_interp1->first()->level;
         $user = Auth::user();
-        $user_profile = User::where('user_id', $user->id)->get()->first();
+        $user_profile = (new UserRepository())->where('user_id', $user->id)->get()->first();
         $user_profile->level = $level;
         $user_profile->save();
         return response()->json(['level' => $level]);
