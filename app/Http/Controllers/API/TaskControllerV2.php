@@ -60,10 +60,11 @@ class TaskControllerV2 extends Controller
             }
             unset($recommendedTasks['stopToContinueNextWeekTask']);
 
+//            "taskWarningMessage" => $taskWarningMessage
+
             return response()->json([
                 "statusCode" => $statusCode,
                 "statusMessage" => "Recommended Tasks",
-                "taskWarningMessage" => $taskWarningMessage,
                 "response" => $recommendedTasks
             ])->withHeaders([
                 "Content-Type" => "application/json"
@@ -99,10 +100,11 @@ class TaskControllerV2 extends Controller
 
             unset($popularTasks['stopToContinueNextWeekTask']);
 
+//            "taskWarningMessage" => $taskWarningMessage
+            
             return response()->json([
                 "statusCode" => $statusCode,
                 "statusMessage" => "Popular Tasks",
-                "taskWarningMessage" => $taskWarningMessage,
                 "response" => $popularTasks
             ])->withHeaders([
                 "Content-Type" => "application/json"

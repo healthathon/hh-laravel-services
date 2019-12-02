@@ -228,6 +228,9 @@ class DiagnosticLabController
         try {
             $user = $this->userRepo->getUser($userId);
             $user->hasAssessmentRecord();
+
+//            return $user;
+
             return $this->thyrocareLabService->getRecommendedTestForUser($user);
         } catch (UserNotFoundException $e) {
             $e->setMessage(Constants::NO_USER_FOUND);

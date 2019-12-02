@@ -324,8 +324,12 @@ class UserService
                         $calculatedScore += $this->getShaAnswerScore($shaObject, $answers["questionId"], $answer);
                     if ($shaObject->is_scoreable) {
                         array_push($collectUserAnswer, $answer);
-                        $taskIds = (new SHATaskRecommendationRepository())->where('answer_id', $answer)->pluck("task_id");
-                        $testIds = (new SHATaskRecommendationRepository())->where('answer_id', $answer)->pluck("test_id");
+
+                        $taskIds = SHATaskRecommendation::where('answer_id', $answer)->pluck("task_id");
+                        $testIds = SHATestRecommendation::where('answer_id', $answer)->pluck("test_id");
+
+                        // $taskIds = (new SHATaskRecommendationRepository())->where('answer_id', $answer)->pluck("task_id");
+                        // $testIds = (new SHATaskRecommendationRepository())->where('answer_id', $answer)->pluck("test_id");
                         $recommendedTaskIds = array_merge($recommendedTaskIds, $taskIds->toArray());
                         $recommendedTestIds = array_merge($recommendedTestIds, $testIds->toArray());
                     }

@@ -108,12 +108,13 @@ class UserController extends Controller
      */
     public function register(Request $request)
     {
+        //dd($request->all());
         $validationArr = [
             'type' => 'required',
             'first_name' => 'required',
             'last_name' => 'required',
             'email' => 'required|unique:users',
-            'name' => 'unique:users',
+            'name' => 'required',
             'city' => 'required',
             'birthday' => 'required',
             'contact_no' => 'unique:users'
@@ -142,10 +143,15 @@ class UserController extends Controller
             }
             if ($request->type === "normal")
                 $user->password = bcrypt($request->input('password'));
-            if ($request->get('type') == "social") {
-                $user->social_id = $request->get('social_id');
+            else
+                $user->password = "";
+
+            if ($request->type == "social") {
+                $user->social_id = $request->social_id;
                 $user->platform = $request->get('platform');
             }
+
+            //dd($user);
             if ($user->save()) {
                 event(new SendRegistrationMail($user));
                 $token = $user->createToken('MyApp')->accessToken;

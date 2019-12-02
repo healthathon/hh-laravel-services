@@ -273,6 +273,9 @@ class AssessmentService implements IAssessmentService
             $user->assessmentRecord = new assesHistory();
             $user->assessmentRecord->user_id = $user->id;
         }
+
+//        return $user->assessmentRecord;
+//        dd($user->assessmentRecord);
         $tagScoreColumn = "tag" . $tagId . "_score";
         $collectedAnswers = [];
         $restrictionLevelCollector = [];
@@ -291,7 +294,10 @@ class AssessmentService implements IAssessmentService
             $restrictedValue = (new AssessmentRepository())->where("answer", trim($answer["answer_text"]))
                 ->where("query_id", $answer['query_id'])
                 ->first();
-            if (!empty($restrictedValue)) {
+
+            //dd($restrictedValue);
+
+            if (!empty($restrictedValue) && !is_null($restrictedValue->restricted_level)) {
                 $restrictedLevel = $restrictedValue->restricted_level;
                 array_push($restrictionLevelCollector, $restrictedLevel);
             }
@@ -325,7 +331,10 @@ class AssessmentService implements IAssessmentService
                 $user->assessmentRecord->finish_state = 1;
                 event(new UpdateUserState($user->assessmentRecord)); // calculate tags percentage
             }
+
             $user->assessmentRecord->save();
+//            dd($user->assessmentRecord);
+//            dd($restrictionLevelCollector);
             if (count($restrictionLevelCollector) > 0) {
                 $userLongAssessRestriction = null;
                 $newMinValue = min($restrictionLevelCollector);

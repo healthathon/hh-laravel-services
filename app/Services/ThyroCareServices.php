@@ -24,6 +24,7 @@ use App\Model\MMGBookingDetails;
 use App\Model\ThyrocareBeanDetails;
 use App\Model\ThyrocareUserData;
 use App\Respositories\DiagnosticLabInformationRepository;
+use App\Respositories\LabRepository;
 use App\Respositories\UserRepository;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -340,11 +341,17 @@ class ThyroCareServices
     // Fetch Recommended Test for User
     public function getRecommendedTestForUser($user)
     {
+//        return $user->recommendedTest;
+
         $testIdsArr = array_column($user->recommendedTest->toArray(), 'test_id');
+
+//        return $testIdsArr;
         $response = [];
-        $labsTestsInfo = LabsTest::with('lab:id,name,address')
+        $labsTestsInfo = (new LabRepository())->with('lab:id,name,address')
             ->whereIn('id', $testIdsArr)
             ->get(['id', 'test_name', 'profile', 'test_code', 'abbr', 'price', 'lab_id', 'sample_type', 'process_duration', 'result_duration']);
+
+//        return $labsTestsInfo;
         $labTestCollection = new Collection($labsTestsInfo);
         $groupByLabNameCollection = $labTestCollection->groupBy('lab.name');
         $arrayIndex = 0;

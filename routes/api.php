@@ -2,8 +2,10 @@
 
 ## TODO: After login, for each request user will pass the token
 
-Route::post('auth/login', 'UserController@login');
-Route::post('auth/register', 'UserController@register');
+Route::group(['namespace' => 'API'], function () {
+    Route::post('auth/login', 'UserController@login');
+    Route::post('auth/register', 'UserController@register');
+});
 
 
 Route::group(['middleware' => 'auth:api'], function () {
@@ -91,7 +93,7 @@ Route::group(['middleware' => 'auth:api'], function () {
         Route::get('assess/resume/{userId}/get-questions', 'AssessController@getAssessmentQuestionsForUser');
         Route::get('top-leaders', 'LeaderBoardController@getTop20Users');
         Route::get('user/{userId}/test/recommended', 'DiagnosticLabController@getRecommendedTestForUser');
-    
+
         Route::group(['prefix' => 'task'], function () {
             Route::post('register', 'TaskControllerV2@subscribeTask');
             Route::put('complete', 'TaskControllerV2@dailyTaskCompleted');
